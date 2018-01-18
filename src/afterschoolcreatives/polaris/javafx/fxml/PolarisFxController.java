@@ -1,5 +1,6 @@
 package afterschoolcreatives.polaris.javafx.fxml;
 
+import afterschoolcreatives.polaris.java.PolarisException;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
@@ -36,9 +37,9 @@ public abstract class PolarisFxController implements Initializable {
     protected abstract void setup();
 
     /**
-     * The Implementation of the PolarisFxController class is to have the controller
- and the FXML file in the same location. therefore it is assumed that the
-     * FXML file is in the same location of the class package.
+     * The Implementation of the PolarisFxController class is to have the
+     * controller and the FXML file in the same location. therefore it is
+     * assumed that the FXML file is in the same location of the class package.
      *
      * @return
      */
@@ -61,12 +62,7 @@ public abstract class PolarisFxController implements Initializable {
             this.setup();
             return (T) this.root;
         } catch (IOException ex) {
-            /**
-             * Print Stack Trace for Exception.
-             */
-            ex.printStackTrace();
-            // null will be returned
-            return null;
+            throw new PolarisException("Cannot load the FXML.", ex);
         }
     }
 
@@ -98,8 +94,7 @@ public abstract class PolarisFxController implements Initializable {
         try {
             return (Stage) this.getRootPane().getScene().getWindow();
         } catch (ClassCastException e) {
-            e.printStackTrace();
-            return null;
+            throw new PolarisException("Cannot get the current stage.", e);
         }
     }
 

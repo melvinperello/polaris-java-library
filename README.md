@@ -1,9 +1,9 @@
 # Polaris Java Library
 
 A General Purpose library for java that aims to reduce the existence of boiler plate code in the world.
-Backpack Java Library aims to cover features from basic to advance Java Programming.
+Polaris Java Library aims to cover features from basic to advance Java Programming.
 	
-View Code Examples Here: **[Click Me For Example Codes](https://github.com/jhmvin/afterschoolcreatives-backpack-examples)**
+View Code Examples Here: **[Click Me For Example Codes](https://github.com/afterschoolcreatives/polaris-java-library-examples)**
 
 [![MIT Licence](https://badges.frapsoft.com/os/mit/mit.svg?v=103)](https://opensource.org/licenses/mit-license.php)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](http://makeapullrequest.com)
