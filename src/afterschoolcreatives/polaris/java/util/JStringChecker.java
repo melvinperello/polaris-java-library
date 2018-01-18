@@ -9,9 +9,10 @@ import java.util.regex.Pattern;
  * @author Joemar
  */
 public class JStringChecker {
-    
+
     /**
      * checks the given string if all given char are letters only
+     *
      * @param str
      * @return
      */
@@ -20,11 +21,12 @@ public class JStringChecker {
         Matcher m = p.matcher(str);
         return m.matches();
     }
-    
+
     /**
      * checks the given string if all given char are numbers only
+     *
      * @param str
-     * @return 
+     * @return
      */
     public static boolean isNumeric(String str) {
         Pattern p = Pattern.compile("\\p{N}+");
@@ -34,6 +36,7 @@ public class JStringChecker {
 
     /**
      * checks the given string if all given char are letters or numbers only
+     *
      * @param str
      * @return
      */
@@ -42,16 +45,16 @@ public class JStringChecker {
         Matcher m = p.matcher(str);
         return !m.find();
     }
-    
+
     /**
-     * 
+     *
      * @param str string to be checked
      * @param acceptedCharacter char that will be valid for checking
-     * @return 
+     * @return
      */
-    public static boolean isAlphaNumeric(String str, String ... acceptedCharacter) {
+    public static boolean isAlphaNumeric(String str, String... acceptedCharacter) {
         String regex = "a-z0-9";
-        for(String c : acceptedCharacter) {
+        for (String c : acceptedCharacter) {
             regex += c;
         }
         System.out.println(regex);
@@ -59,9 +62,11 @@ public class JStringChecker {
         Matcher m = p.matcher(str);
         return !m.find();
     }
-    
+
     /**
-     * checks the given string if all given char are letters, numbers or with space only
+     * checks the given string if all given char are letters, numbers or with
+     * space only
+     *
      * @param str
      * @return
      */
@@ -70,16 +75,16 @@ public class JStringChecker {
         Matcher m = p.matcher(str);
         return !m.find();
     }
-    
+
     /**
-     * 
+     *
      * @param str string to be checked
      * @param acceptedCharacter char that will be valid for checking
-     * @return 
+     * @return
      */
-    public static boolean isAlphaNumericSpace(String str, String ... acceptedCharacter) {
+    public static boolean isAlphaNumericSpace(String str, String... acceptedCharacter) {
         String regex = "a-z0-9 ";
-        for(String c : acceptedCharacter) {
+        for (String c : acceptedCharacter) {
             regex += c;
         }
         System.out.println(regex);
@@ -87,5 +92,5 @@ public class JStringChecker {
         Matcher m = p.matcher(str);
         return !m.find();
     }
-    
+
 }
