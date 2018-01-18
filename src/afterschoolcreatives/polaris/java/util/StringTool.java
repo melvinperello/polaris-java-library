@@ -121,4 +121,20 @@ public class StringTool {
         return string.replaceAll("\\s+", " ").trim();
     }
 
+    /**
+     * checks if a string start with any of the given character.
+     *
+     * @param string
+     * @param with
+     * @return
+     */
+    public static boolean startsWith(String string, char... with) {
+        for (char c : with) {
+            if (string.charAt(0) == c) {
+                return true;
+            }
+        }
+        return false;
+    }
+
 }
