@@ -1,4 +1,4 @@
-package afterschoolcreatives.polaris.javafx;
+package afterschoolcreatives.polaris.javafx.fxml;
 
 import java.io.IOException;
 import java.net.URL;
@@ -13,7 +13,7 @@ import javafx.stage.Stage;
  *
  * @author Jhon Melvin
  */
-public abstract class FXController implements Initializable {
+public abstract class PolarisFxController implements Initializable {
 
     private Parent root;
 
@@ -36,8 +36,8 @@ public abstract class FXController implements Initializable {
     protected abstract void setup();
 
     /**
-     * The Implementation of the FXController class is to have the controller
-     * and the FXML file in the same location. therefore it is assumed that the
+     * The Implementation of the PolarisFxController class is to have the controller
+ and the FXML file in the same location. therefore it is assumed that the
      * FXML file is in the same location of the class package.
      *
      * @return
