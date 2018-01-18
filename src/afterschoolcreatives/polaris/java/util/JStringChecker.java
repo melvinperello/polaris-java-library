@@ -7,6 +7,13 @@ import java.util.regex.Pattern;
  * Joemar String Checker class.
  *
  * @author Joemar
+ *
+ * @deprecated This class was deprecated since 01/19/2018
+ * @see StringChecker please use this class instead.
+ *
+ * @afterschoolcreatives
+ * @closure Jhon Melvin
+ *
  */
 public class JStringChecker {
 
