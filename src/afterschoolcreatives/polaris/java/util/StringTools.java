@@ -7,7 +7,7 @@ import java.util.regex.Pattern;
  *
  * @author Jhon Melvin
  */
-public class StringTool {
+public class StringTools {
 
     // REGEX NOTES.
     // + - multiple characters (occurs 1 or more times)

@@ -9,7 +9,7 @@ import java.util.regex.Pattern;
  * @author Joemar
  *
  * @deprecated This class was deprecated since 01/19/2018
- * @see StringTool please use this class instead.
+ * @see StringTools please use this class instead.
  *
  * @afterschoolcreatives
  *
