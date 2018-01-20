@@ -1,4 +1,4 @@
-package afterschoolcreatives.polaris.java.io;
+package org.afterschoolcreatives.polaris.java.io;
 
 import java.io.IOException;
 

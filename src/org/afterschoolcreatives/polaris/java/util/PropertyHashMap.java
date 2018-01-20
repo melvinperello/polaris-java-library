@@ -1,8 +1,8 @@
-package afterschoolcreatives.polaris.java.util;
+package org.afterschoolcreatives.polaris.java.util;
 
 import java.util.HashMap;
-import afterschoolcreatives.polaris.java.io.FileReading;
-import afterschoolcreatives.polaris.java.io.FileWriting;
+import org.afterschoolcreatives.polaris.java.io.FileReading;
+import org.afterschoolcreatives.polaris.java.io.FileWriting;
 import java.io.IOException;
 
 /**

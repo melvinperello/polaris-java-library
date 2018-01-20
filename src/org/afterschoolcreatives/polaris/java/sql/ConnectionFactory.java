@@ -1,6 +1,6 @@
-package afterschoolcreatives.polaris.java.sql;
+package org.afterschoolcreatives.polaris.java.sql;
 
-import afterschoolcreatives.polaris.java.PolarisException;
+import org.afterschoolcreatives.polaris.java.PolarisException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;

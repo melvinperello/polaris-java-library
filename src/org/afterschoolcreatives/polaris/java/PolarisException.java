@@ -1,4 +1,4 @@
-package afterschoolcreatives.polaris.java;
+package org.afterschoolcreatives.polaris.java;
 
 /**
  * General Runtime Exception for library operations.

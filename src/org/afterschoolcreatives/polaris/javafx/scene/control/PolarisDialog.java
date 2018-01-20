@@ -1,4 +1,4 @@
-package afterschoolcreatives.polaris.javafx.scene.control;
+package org.afterschoolcreatives.polaris.javafx.scene.control;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;

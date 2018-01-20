@@ -1,4 +1,4 @@
-package afterschoolcreatives.polaris.java.util;
+package org.afterschoolcreatives.polaris.java.util;
 
 import java.util.regex.Pattern;
 

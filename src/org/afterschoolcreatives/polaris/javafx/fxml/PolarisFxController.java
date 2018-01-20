@@ -1,6 +1,6 @@
-package afterschoolcreatives.polaris.javafx.fxml;
+package org.afterschoolcreatives.polaris.javafx.fxml;
 
-import afterschoolcreatives.polaris.java.PolarisException;
+import org.afterschoolcreatives.polaris.java.PolarisException;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;

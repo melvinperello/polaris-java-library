@@ -1,4 +1,4 @@
-package afterschoolcreatives.polaris.javafx.scene.control.simpletable;
+package org.afterschoolcreatives.polaris.javafx.scene.control.simpletable;
 
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.HBox;

@@ -1,6 +1,6 @@
-package afterschoolcreatives.polaris.java.sql;
+package org.afterschoolcreatives.polaris.java.sql;
 
-import afterschoolcreatives.polaris.java.sql.builder.QueryBuilder;
+import org.afterschoolcreatives.polaris.java.sql.builder.QueryBuilder;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;

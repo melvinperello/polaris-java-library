@@ -1,4 +1,4 @@
-package afterschoolcreatives.polaris.java.sql.builder;
+package org.afterschoolcreatives.polaris.java.sql.builder;
 
 import java.util.ArrayList;
 

@@ -1,4 +1,4 @@
-package afterschoolcreatives.polaris.java.sql;
+package org.afterschoolcreatives.polaris.java.sql;
 
 import java.util.HashMap;
 
