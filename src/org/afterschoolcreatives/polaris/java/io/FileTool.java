@@ -87,8 +87,18 @@ public class FileTool {
      */
     public static boolean createDirectory(String directory) {
         File dirName = new File(directory);
-        if (!dirName.exists()) {
-            return dirName.mkdirs();
+        return createDirectory(dirName);
+    }
+
+    /**
+     * Creates a directory and all its parent directories.
+     *
+     * @param directory
+     * @return
+     */
+    public static boolean createDirectory(File directory) {
+        if (!directory.exists()) {
+            return directory.mkdirs();
         } else {
             return true;
         }
