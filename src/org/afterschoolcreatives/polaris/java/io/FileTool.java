@@ -15,7 +15,7 @@ public class FileTool {
 
     /**
      * Transfers bytes into this channel's file from the given readable byte
-     * channel.
+     * channel. Recommended when transferring large files.
      *
      * <p>
      * An attempt is made to read up to <tt>count</tt> bytes from the source
@@ -38,42 +38,15 @@ public class FileTool {
      * <p>
      * This method is potentially much more efficient than a simple loop that
      * reads from the source channel and writes to this channel. Many operating
-     * systems can transfer bytes directly from the source channel into the
-     * filesystem cache without actually copying them.  </p>
+     * systems can transfer bytes directly from the source channel into the file
+     * system cache without actually copying them.  </p>
      *
-     * @param src The source channel
-     *
-     * @param position The position within the file at which the transfer is to
-     * begin; must be non-negative
-     *
-     * @param count The maximum number of bytes to be transferred; must be
-     * non-negative
-     *
-     * @return The number of bytes, possibly zero, that were actually
-     * transferred
-     *
-     * @throws IllegalArgumentException If the preconditions on the parameters
-     * do not hold
-     *
-     * @throws NonReadableChannelException If the source channel was not opened
-     * for reading
-     *
-     * @throws NonWritableChannelException If this channel was not opened for
-     * writing
-     *
-     * @throws ClosedChannelException If either this channel or the source
-     * channel is closed
-     *
-     * @throws AsynchronousCloseException If another thread closes either
-     * channel while the transfer is in progress
-     *
-     * @throws ClosedByInterruptException If another thread interrupts the
-     * current thread while the transfer is in progress, thereby closing both
-     * channels and setting the current thread's interrupt status
-     *
-     * @throws IOException If some other I/O error occurs
+     * @param source File object as source.
+     * @param destination File object as destination.
+     * @return if the size of the source and the destination matches.
+     * @throws java.io.IOException
      */
-    public static boolean channelCopy(File source, File destination) throws IOException {
+    public static boolean copyChannel(File source, File destination) throws IOException {
         // create channels
         FileChannel sourceChannel = null;
         FileChannel destinationChannel = null;
@@ -94,6 +67,20 @@ public class FileTool {
                 destinationChannel.close();
             }
         }
-
     }
+
+    /**
+     * Creates a directory and all its parent directories.
+     *
+     * @param directory
+     * @return true if already exist.
+     */
+    public static boolean createDirectory(File directory) {
+        if (!directory.exists()) {
+            return directory.mkdirs();
+        } else {
+            return true;
+        }
+    }
+
 }
