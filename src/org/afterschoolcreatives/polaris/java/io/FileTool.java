@@ -85,9 +85,10 @@ public class FileTool {
      * @param directory
      * @return true if already exist.
      */
-    public static boolean createDirectory(File directory) {
-        if (!directory.exists()) {
-            return directory.mkdirs();
+    public static boolean createDirectory(String directory) {
+        File dirName = new File(directory);
+        if (!dirName.exists()) {
+            return dirName.mkdirs();
         } else {
             return true;
         }
