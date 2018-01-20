@@ -4,7 +4,16 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.channels.AsynchronousCloseException;
+import java.nio.channels.ClosedByInterruptException;
+import java.nio.channels.ClosedChannelException;
 import java.nio.channels.FileChannel;
+import java.nio.channels.NonReadableChannelException;
+import java.nio.channels.NonWritableChannelException;
+import java.nio.file.DirectoryNotEmptyException;
+import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
+import java.nio.file.Paths;
 
 /**
  * A helper class for files.
@@ -44,9 +53,31 @@ public class FileTool {
      * @param source File object as source.
      * @param destination File object as destination.
      * @return if the size of the source and the destination matches.
-     * @throws java.io.IOException
+     * @throws IllegalArgumentException If the preconditions on the parameters
+     * do not hold
+     *
+     * @throws NonReadableChannelException If the source channel was not opened
+     * for reading
+     *
+     * @throws NonWritableChannelException If this channel was not opened for
+     * writing
+     *
+     * @throws ClosedChannelException If either this channel or the source
+     * channel is closed
+     *
+     * @throws AsynchronousCloseException If another thread closes either
+     * channel while the transfer is in progress
+     *
+     * @throws ClosedByInterruptException If another thread interrupts the
+     * current thread while the transfer is in progress, thereby closing both
+     * channels and setting the current thread's interrupt status
+     *
+     * @throws IOException If some other I/O error occurs
      */
-    public static boolean copyChannel(File source, File destination) throws IOException {
+    public static boolean copyChannel(File source, File destination)
+            throws IOException, IllegalArgumentException, NonWritableChannelException,
+            ClosedChannelException, AsynchronousCloseException,
+            ClosedByInterruptException, NonReadableChannelException {
         // create channels
         FileChannel sourceChannel = null;
         FileChannel destinationChannel = null;
@@ -67,7 +98,6 @@ public class FileTool {
             } catch (IOException e) {
                 // ignore
             }
-
             try {
                 if (destinationChannel != null) {
                     destinationChannel.close();
@@ -75,7 +105,6 @@ public class FileTool {
             } catch (IOException e) {
                 // ignore
             }
-
         }
     }
 
@@ -96,12 +125,52 @@ public class FileTool {
      * @param directory
      * @return
      */
-    public static boolean createDirectory(File directory) {
+    public static boolean createDirectory(File directory) throws SecurityException {
         if (!directory.exists()) {
             return directory.mkdirs();
         } else {
             return true;
         }
+    }
+
+    /**
+     * Deletes the file or directory denoted by this abstract pathname. If this
+     * pathname denotes a directory, then the directory must be empty in order
+     * to be deleted.
+     *
+     * @param file
+     * @return
+     * @throws SecurityException If a security manager exists and its
+     * SecurityManager.checkDelete method denies delete access to the file
+     * @throws IOException when a file cannot be deleted.
+     */
+    public static boolean deleteFile(File file) throws SecurityException, IOException {
+        return file.delete();
+    }
+
+    /**
+     * As with the delete(Path) method, an implementation may need to examine
+     * the file to determine if the file is a directory. Consequently this
+     * method may not be atomic with respect to other file system operations. If
+     * the file is a symbolic link, then the symbolic link itself, not the final
+     * target of the link, is deleted. If the file is a directory then the
+     * directory must be empty. In some implementations a directory has entries
+     * for special files or links that are created when the directory is
+     * created. In such implementations a directory is considered empty when
+     * only the special entries exist. On some operating systems it may not be
+     * possible to remove a file when it is open and in use by this Java virtual
+     * machine or other programs.
+     *
+     * @param filePath Absolute or relative String path
+     * @return true if the file was deleted by this method; false if the file
+     * could not be deleted because it did not exist
+     * @throws NoSuchFileException when the file does not exists.
+     * @throws DirectoryNotEmptyException when the directory is not empty.
+     * @throws IOException Invalid Permission or IO error.
+     */
+    public static boolean deleteFileIfExists(String filePath) throws NoSuchFileException,
+            DirectoryNotEmptyException, IOException {
+        return Files.deleteIfExists(Paths.get(filePath));
     }
 
 }
