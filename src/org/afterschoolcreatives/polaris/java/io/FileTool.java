@@ -60,12 +60,22 @@ public class FileTool {
 
             return destinationChannel.size() == sourceChannel.size();
         } finally {
-            if (sourceChannel != null) {
-                sourceChannel.close();
+            try {
+                if (sourceChannel != null) {
+                    sourceChannel.close();
+                }
+            } catch (IOException e) {
+                // ignore
             }
-            if (destinationChannel != null) {
-                destinationChannel.close();
+
+            try {
+                if (destinationChannel != null) {
+                    destinationChannel.close();
+                }
+            } catch (IOException e) {
+                // ignore
             }
+
         }
     }
 
