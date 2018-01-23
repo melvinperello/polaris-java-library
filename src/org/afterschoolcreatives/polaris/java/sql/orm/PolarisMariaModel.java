@@ -26,11 +26,10 @@
 package org.afterschoolcreatives.polaris.java.sql.orm;
 
 /**
- *
- * Actual Here
+ * A Model that specifically created for Maria DB usage.
  *
  * @author Jhon Melvin
  */
-public class MariaDBModel extends PolarisModel {
+public class PolarisMariaModel extends PolarisModel {
 
 }

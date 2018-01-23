@@ -1,5 +1,5 @@
 /**
- * 
+ *
  * Polaris Java Library - Afterschool Creatives "Captivating Creativity"
  *
  * Copyright 2018 Jhon Melvin Perello
@@ -25,7 +25,6 @@
  */
 package org.afterschoolcreatives.polaris.java.sql.orm;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**

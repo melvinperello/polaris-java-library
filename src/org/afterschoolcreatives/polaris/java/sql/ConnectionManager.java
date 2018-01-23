@@ -30,6 +30,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 
 /**
  *
@@ -189,11 +190,62 @@ public class ConnectionManager implements AutoCloseable {
     }
 
     /**
-     * Prepared statement optimized for DLL.
      *
      * @param query
      * @param parameters
      * @return
+     * @throws SQLException
+     */
+    @SuppressWarnings(value = "SQL_PREPARED_STATEMENT_GENERATED_FROM_NONCONSTANT_STRING")
+    public int insert(String query, Object... parameters) throws SQLException {
+        PreparedStatement preparedStatement = null;
+        try {
+            // added return generated key constant
+            preparedStatement = this.connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
+            this.insertPreparedParameters(preparedStatement, parameters);
+            //------------------------------------------------------------------
+            int result = preparedStatement.executeUpdate();
+            //------------------------------------------------------------------
+            // Get Generated Keys.
+            ResultSet gkSet = preparedStatement.getGeneratedKeys();
+            if (gkSet.next()) {
+                
+            }
+            //------------------------------------------------------------------
+            return result;
+        } finally {
+            //--------------------------------------------------------------
+            if (preparedStatement != null) {
+                preparedStatement.close();
+            }
+            //--------------------------------------------------------------
+        }
+    }
+
+    /**
+     * Execute Data Manipulation Language (DML) and Data Definition Language
+     * (DDL) using this method.
+     *
+     * <strong> Operations </strong>
+     * <ul>
+     * <li>INSERT – Inserts data into a table</li>
+     * <li>UPDATE – Updates existing data into a table </li>
+     * <li>DELETE – Deletes all records from a table</li>
+     * <li>CREATE – Creates objects in the database</li>
+     * <li>ALTER – Alters objects of the database</li>
+     * <li>DROP – Deletes objects of the database</li>
+     * <li>TRUNCATE – Deletes all records from a table and resets table identity
+     * to initial value.</li>
+     * </ul>
+     *
+     * Note: SELECT is also supported but use fetch method instead to get the
+     * result set object. this method only returns the number of affected rows
+     * by the operation.
+     *
+     * @param query SQL Statement
+     * @param parameters parameters
+     * @return an integer representing the number of affected objects.
+     * @throws SQLException if the operation has failed.
      */
     @SuppressWarnings(value = "SQL_PREPARED_STATEMENT_GENERATED_FROM_NONCONSTANT_STRING")
     public int update(String query, Object... parameters) throws SQLException {
@@ -215,21 +267,23 @@ public class ConnectionManager implements AutoCloseable {
     }
 
     /**
+     * Execute update using a query builder.
      *
+     * @see ConnectionManager#update(java.lang.String, java.lang.Object...)
      * @param builder
      * @return
-     * @throws java.sql.SQLException
+     * @throws SQLException
      */
     public int update(QueryBuilder builder) throws SQLException {
         return this.update(builder.getQueryString(), builder.getParameters());
     }
 
     /**
-     * Prepared statement for SELECT Operation.
+     * Execute SELECT operations.
      *
-     * @param query
-     * @param parameters
-     * @return
+     * @param query SQL Statement.
+     * @param parameters parameters
+     * @return Data Set Object containing the results.
      */
     @SuppressWarnings(value = "SQL_PREPARED_STATEMENT_GENERATED_FROM_NONCONSTANT_STRING")
     public DataSet fetch(String query, Object... parameters) throws SQLException {
@@ -261,10 +315,13 @@ public class ConnectionManager implements AutoCloseable {
     }
 
     /**
+     * Execute Fetch Operations.
+     *
+     * @see ConnectionManager#fetch(java.lang.String, java.lang.Object...)
      *
      * @param builder
      * @return
-     * @throws java.sql.SQLException
+     * @throws SQLException
      */
     public DataSet fetch(QueryBuilder builder) throws SQLException {
         return this.fetch(builder.getQueryString(), builder.getParameters());

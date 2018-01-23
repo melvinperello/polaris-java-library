@@ -39,14 +39,10 @@ import org.afterschoolcreatives.polaris.java.sql.ConnectionFactory;
  * @author Jhon Melvin
  */
 @Documented
-@Inherited
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Table {
 
-    String name();
+    String value();
 
-    String database();
-
-    ConnectionFactory.Driver driver();
 }

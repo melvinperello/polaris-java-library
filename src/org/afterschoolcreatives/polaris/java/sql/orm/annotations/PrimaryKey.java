@@ -38,7 +38,6 @@ import java.lang.annotation.Target;
  * @author Jhon Melvin
  */
 @Documented
-@Inherited
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface PrimaryKey {

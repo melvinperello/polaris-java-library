@@ -33,8 +33,18 @@ import java.util.List;
  */
 public interface Model {
 
+    /**
+     * Inserts a record.
+     *
+     * @return
+     */
     boolean insert();
 
+    /**
+     * updates a record.
+     *
+     * @return
+     */
     boolean update();
 
     /**
@@ -44,12 +54,36 @@ public interface Model {
      */
     Boolean upsert();
 
+    /**
+     * Delete record.
+     *
+     * @return
+     */
     boolean delete();
 
+    /**
+     * Find an instance using the primary key.
+     *
+     * @param id
+     * @return
+     */
     boolean find(Object id);
 
+    /**
+     * Find an instance using an SQL statement. the result will be truncated
+     * only to the first result. A LIMIT 1 or similar method should be added.
+     *
+     * @param sql
+     * @return
+     */
     boolean findQuery(String sql);
 
+    /**
+     * returns a list of instance that matches the query.
+     *
+     * @param sql
+     * @return
+     */
     List findMany(String sql);
 
 }
