@@ -1,3 +1,4 @@
+
 # Polaris Java Library
 [![Open Source Love](https://badges.frapsoft.com/os/v2/open-source.svg?v=103)](https://github.com/ellerbrock/open-source-badges/)
 We call that star the "North Star" since it sits in the direction that the spin axis from the northern hemisphere of Earth points. At present, the star known as Polaris is the North Star. It was used by ancient navigators as a means of sensing the right direction.
@@ -20,3 +21,7 @@ Jhon Melvin Nieto Perello, 4th Year DOST Scholar, BSIT, Bulacan State University
 
 
 ## Polaris v1.0 - beta
+The first beta-release of Java Polaris Library
+
+ - Supports Easy Java FXML Loader.
+ - Supports Easy SQL Statements Execution and Connection to the Database.

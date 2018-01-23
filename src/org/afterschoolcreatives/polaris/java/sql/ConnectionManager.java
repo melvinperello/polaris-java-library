@@ -190,29 +190,49 @@ public class ConnectionManager implements AutoCloseable {
     }
 
     /**
+     * Inserts a new Record to the database.
      *
-     * @param query
-     * @param parameters
-     * @return
-     * @throws SQLException
+     * @param query SQL Statement.
+     * @param parameters Parameters.
+     * @return The first insert Auto Generated keys if there is any. NONE if
+     * there is no readable generated keys.
+     * @throws SQLException Failure to insert.
      */
     @SuppressWarnings(value = "SQL_PREPARED_STATEMENT_GENERATED_FROM_NONCONSTANT_STRING")
-    public int insert(String query, Object... parameters) throws SQLException {
+    public <T> T insert(String query, Object... parameters) throws SQLException {
         PreparedStatement preparedStatement = null;
         try {
             // added return generated key constant
             preparedStatement = this.connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
             this.insertPreparedParameters(preparedStatement, parameters);
             //------------------------------------------------------------------
-            int result = preparedStatement.executeUpdate();
+            preparedStatement.executeUpdate(); // ignore results
             //------------------------------------------------------------------
             // Get Generated Keys.
-            ResultSet gkSet = preparedStatement.getGeneratedKeys();
-            if (gkSet.next()) {
-                
+            //------------------------------------------------------------------
+            ResultSet gkSet = null; // create a holder for the generated keys.
+            try {
+                gkSet = preparedStatement.getGeneratedKeys(); // get generated keys
+                if (gkSet.next()) {
+                    // check if there is a key
+                    Object generatedKey = gkSet.getObject(1); // get the first index
+                    return (T) generatedKey; // return the generated key
+                } else {
+                    return null; // if no generated keys return null
+                }
+            } catch (SQLException gkEx) {
+                // return null for exception in fetching keys this was caught and will not affect the insert method.
+                // this means that even the generated keys was not fetch the insert result will not be affected
+                return null;
+            } finally {
+                // close the result set if necessary.
+                if (gkSet != null) {
+                    gkSet.close();
+                }
             }
             //------------------------------------------------------------------
-            return result;
+            // END Get Generated Keys.
+            //------------------------------------------------------------------
         } finally {
             //--------------------------------------------------------------
             if (preparedStatement != null) {
@@ -220,6 +240,18 @@ public class ConnectionManager implements AutoCloseable {
             }
             //--------------------------------------------------------------
         }
+    }
+
+    /**
+     * Execute insert using a query builder.
+     *
+     * @see ConnectionManager#insert(java.lang.String, java.lang.Object...)
+     * @param builder
+     * @return
+     * @throws SQLException
+     */
+    public int insert(QueryBuilder builder) throws SQLException {
+        return this.insert(builder.getQueryString(), builder.getParameters());
     }
 
     /**
