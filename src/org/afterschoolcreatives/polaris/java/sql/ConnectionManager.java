@@ -94,6 +94,7 @@ public class ConnectionManager implements AutoCloseable {
      */
     public void transactionCommit() throws SQLException {
         this.connection.commit();
+        this.transactionEnd();
     }
 
     /**
@@ -250,7 +251,7 @@ public class ConnectionManager implements AutoCloseable {
      * @return
      * @throws SQLException
      */
-    public int insert(QueryBuilder builder) throws SQLException {
+    public <T> T insert(QueryBuilder builder) throws SQLException {
         return this.insert(builder.getQueryString(), builder.getParameters());
     }
 

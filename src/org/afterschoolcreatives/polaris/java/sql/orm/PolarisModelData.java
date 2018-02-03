@@ -34,6 +34,7 @@ import java.util.ArrayList;
 import org.afterschoolcreatives.polaris.java.PolarisException;
 import org.afterschoolcreatives.polaris.java.sql.orm.annotations.Column;
 import org.afterschoolcreatives.polaris.java.sql.orm.annotations.PrimaryKey;
+import org.afterschoolcreatives.polaris.java.sql.orm.annotations.Table;
 
 /**
  * A Class Data Holder that keeps the important values during reflection scan.
@@ -48,7 +49,6 @@ public class PolarisModelData {
     private Object fieldValue;
     // extras
     private String table;
-    private String database;
 
     public boolean isPrimaryKey() {
         return primaryKey;
@@ -90,14 +90,6 @@ public class PolarisModelData {
         this.table = table;
     }
 
-    public String getDatabase() {
-        return database;
-    }
-
-    public void setDatabase(String database) {
-        this.database = database;
-    }
-
     //--------------------------------------------------------------------------
     // Static Methods.
     //--------------------------------------------------------------------------
@@ -114,7 +106,6 @@ public class PolarisModelData {
         ArrayList<PolarisModelData> fieldAnnotations = new ArrayList<>(10);
         // get the declared fields
         Field[] fields = model.getClass().getDeclaredFields();
-
         // read declared fields.
         for (Field field : fields) {
             // get annotation for that field
@@ -125,6 +116,8 @@ public class PolarisModelData {
             }
             // create model annotation
             PolarisModelData pma = new PolarisModelData();
+            // read model annotations
+            PolarisModelData.readModelAnnotations(model, pma);
             // read field name
             pma.setFieldName(field.getName());
             // read field value
@@ -157,7 +150,10 @@ public class PolarisModelData {
                     }
                 }
             }
-
+            /**
+             * Add To List.
+             */
+            fieldAnnotations.add(pma);
         }
         return fieldAnnotations;
     }
@@ -167,10 +163,13 @@ public class PolarisModelData {
      *
      * @param model
      */
-    private static void readModelAnnotations(Class model) {
-        Annotation[] annotations = model.getAnnotations();
+    private static void readModelAnnotations(Model model, PolarisModelData pma) {
+        Annotation[] annotations = model.getClass().getAnnotations();
         for (Annotation annotation : annotations) {
-
+            if (annotation instanceof Table) {
+                Table table = (Table) annotation;
+                pma.setTable(table.value());
+            }
         }
     }
 

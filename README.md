@@ -14,10 +14,11 @@ Absolutely Yes! You can use Polaris Library whether for your School Project, The
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](http://makeapullrequest.com) Suggestions are welcome. If you have brand new or creative ideas that can help the growth of this project let us know by sending us a pull request. This will help to support the growth of open-source community among Filipino Students. You can also like and share our [Facebook Page](https://www.facebook.com/afterschoolcreatives)
  to Promote the existence of the organization.
 
-> **Move Forward With A Digital Philippines** Polaris Java Library (C) Afterschool Creatives 2018
+> **Moving Forward With A Digital Philippines** Polaris Java Library (C) Afterschool Creatives 2018
 
 Regards,
-Jhon Melvin Nieto Perello, 4th Year DOST Scholar, BSIT, Bulacan State University, City of Malolos, Bulacan
+Jhon Melvin Nieto Perello
+4th Year DOST Scholar, BSIT, Bulacan State University, City of Malolos, Bulacan
 
 
 ## Polaris v1.0 - beta

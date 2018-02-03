@@ -25,7 +25,9 @@
  */
 package org.afterschoolcreatives.polaris.java.sql.orm;
 
+import java.sql.SQLException;
 import java.util.List;
+import org.afterschoolcreatives.polaris.java.sql.ConnectionManager;
 
 /**
  * Specification for model sub classes.
@@ -37,9 +39,11 @@ public interface Model {
     /**
      * Inserts a record.
      *
+     * @param con
      * @return
+     * @throws java.sql.SQLException
      */
-    boolean insert();
+    void insert(ConnectionManager con) throws SQLException;
 
     /**
      * updates a record.
@@ -47,13 +51,6 @@ public interface Model {
      * @return
      */
     boolean update();
-
-    /**
-     * True if updated. False if inserted. NULL for failed.
-     *
-     * @return
-     */
-    Boolean upsert();
 
     /**
      * Delete record.

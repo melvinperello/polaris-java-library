@@ -25,8 +25,15 @@
  */
 package org.afterschoolcreatives.polaris.java.sql.orm;
 
+import java.beans.IntrospectionException;
+import java.beans.PropertyDescriptor;
+import java.lang.reflect.InvocationTargetException;
+import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import org.afterschoolcreatives.polaris.java.PolarisException;
+import org.afterschoolcreatives.polaris.java.sql.ConnectionManager;
 
 /**
  * Model Dialect that supports MySQL Variants including:
@@ -40,44 +47,95 @@ import java.util.List;
  * @author Jhon Melvin
  */
 public class PolarisModel implements Model {
+    
+    protected String INSERT_INTO = "INSERT INTO"; // insert keyword
+    protected String BACKTICK = "`"; // used when using reserved words
+    protected String VALUES = "VALUES";
 
-    @Override
-    public boolean insert() {
-        ArrayList<PolarisModelData> fields = PolarisModelData.reflect(this);
-        for (PolarisModelData field : fields) {
-
-        }
-        return true;
+    /**
+     * Create a model.
+     */
+    public PolarisModel() {
+        
     }
+    
+    @Override
+    public void insert(ConnectionManager con) throws SQLException {
+        ArrayList<PolarisModelData> fields = PolarisModelData.reflect(this);
+        if (fields.isEmpty()) {
+            throw new PolarisException("No Declared Fields");
+        }
+        // get table name
+        String tableName = fields.get(0).getTable();
+        // create starting query
+        final String prologue = this.INSERT_INTO
+                + " " + this.BACKTICK + tableName + this.BACKTICK
+                + " ";
+        // field building
+        StringBuilder fieldBuilder = new StringBuilder("(");
+        // parameter building
+        StringBuilder valueBuilder = new StringBuilder("(");
+        // parameter values
+        int cursor = 0;
+        final Object[] parameters = new Object[fields.size()];
+        Iterator<PolarisModelData> iterator = fields.iterator();
+        PolarisModelData primaryKeyData = null;
+        while (iterator.hasNext()) {
+            PolarisModelData field = iterator.next();
+            if (field.isPrimaryKey()) {
+                primaryKeyData = field;
+            }
+            String fieldName = this.BACKTICK + field.getColumnName() + this.BACKTICK;
+            valueBuilder.append("?");
+            if (iterator.hasNext()) {
+                fieldName += ",";
+                valueBuilder.append(",");
+            }
+            fieldBuilder.append(fieldName);
+            // add paramter
+            parameters[cursor] = field.getFieldValue();
+            cursor++;
+        }
+        fieldBuilder.append(")"); // close fields
+        valueBuilder.append(")"); // close values
 
+        final String generatedQuery = prologue + fieldBuilder.toString() + " " + this.VALUES + " " + valueBuilder.toString() + ";";
+        Object primaryKey = con.insert(generatedQuery, parameters);
+        
+        try {
+            Object value = new PropertyDescriptor(primaryKeyData.getFieldName(), this.getClass()).getWriteMethod().invoke(this, Integer.valueOf(primaryKey.toString()));
+            System.out.println(value);
+        } catch (Exception e) {
+            /**
+             * Throw runtime error.
+             */
+            throw new PolarisException("Unable to write field " + primaryKeyData.getFieldName(), e);
+        }
+    }
+    
     @Override
     public boolean update() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
-
-    @Override
-    public Boolean upsert() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
+    
     @Override
     public boolean delete() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
-
+    
     @Override
     public boolean find(Object id) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
-
+    
     @Override
     public boolean findQuery(String sql) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
-
+    
     @Override
     public List findMany(String sql) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
-
+    
 }
