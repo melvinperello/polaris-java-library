@@ -25,10 +25,17 @@
  */
 package org.afterschoolcreatives.polaris.java.sql.orm;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Reflections here.
+ * Model Dialect that supports MySQL Variants including:
+ *
+ * <ul>
+ * <li>MySQL</li>
+ * <li>MariaDB</li>
+ * <li>SQLite</li>
+ * </ul>
  *
  * @author Jhon Melvin
  */
@@ -36,7 +43,11 @@ public class PolarisModel implements Model {
 
     @Override
     public boolean insert() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        ArrayList<PolarisModelData> fields = PolarisModelData.reflect(this);
+        for (PolarisModelData field : fields) {
+
+        }
+        return true;
     }
 
     @Override

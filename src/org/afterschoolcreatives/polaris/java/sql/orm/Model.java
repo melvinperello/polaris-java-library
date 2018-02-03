@@ -28,6 +28,7 @@ package org.afterschoolcreatives.polaris.java.sql.orm;
 import java.util.List;
 
 /**
+ * Specification for model sub classes.
  *
  * @author Jhon Melvin
  */
