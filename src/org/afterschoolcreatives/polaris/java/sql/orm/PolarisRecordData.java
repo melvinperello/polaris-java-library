@@ -32,6 +32,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import org.afterschoolcreatives.polaris.java.PolarisException;
+import org.afterschoolcreatives.polaris.java.sql.orm.annotations.AutoFill;
 import org.afterschoolcreatives.polaris.java.sql.orm.annotations.Column;
 import org.afterschoolcreatives.polaris.java.sql.orm.annotations.PrimaryKey;
 import org.afterschoolcreatives.polaris.java.sql.orm.annotations.Table;
@@ -41,53 +42,161 @@ import org.afterschoolcreatives.polaris.java.sql.orm.annotations.Table;
  *
  * @author Jhon Melvin
  */
-public class PolarisModelData {
+public class PolarisRecordData {
 
+    /**
+     * flag if this field is a primary key.
+     */
     private boolean primaryKey;
+    /**
+     * Column name in the database.
+     */
     private String columnName;
+    /**
+     * Variable name in Java.
+     */
     private String fieldName;
+    /**
+     * Value.
+     */
     private Object fieldValue;
-    // extras
+    /**
+     * Data Type of this field.
+     */
+    private Class fieldType;
+    /**
+     * Name of the table which owns this field.
+     */
     private String table;
 
+    /**
+     * Auto generated value.
+     */
+    private boolean autoFill;
+    
+    public boolean isAutoFill() {
+        return autoFill;
+    }
+    
+    public void setAutoFill(boolean autoFill) {
+        this.autoFill = autoFill;
+    }
+
+    /**
+     * Checks whether this field is a primary key.
+     *
+     * @return
+     */
     public boolean isPrimaryKey() {
         return primaryKey;
     }
 
+    /**
+     * Set this field as primary key.
+     *
+     * @param primaryKey
+     */
     public void setPrimaryKey(boolean primaryKey) {
         this.primaryKey = primaryKey;
     }
 
+    /**
+     * Get Column Name.
+     *
+     * @return
+     */
     public String getColumnName() {
         return columnName;
     }
 
+    /**
+     * Set Column Name.
+     *
+     * @param columnName
+     */
     public void setColumnName(String columnName) {
         this.columnName = columnName;
     }
 
+    /**
+     * Get Field Name.
+     *
+     * @return
+     */
     public String getFieldName() {
         return fieldName;
     }
 
+    /**
+     * Set Field Name.
+     *
+     * @param fieldName
+     */
     public void setFieldName(String fieldName) {
         this.fieldName = fieldName;
     }
 
+    /**
+     * Get Field Value.
+     *
+     * @return
+     */
     public Object getFieldValue() {
         return fieldValue;
     }
 
+    /**
+     * Set field value.
+     *
+     * @param fieldValue
+     */
     public void setFieldValue(Object fieldValue) {
         this.fieldValue = fieldValue;
     }
 
+    /**
+     * Get the table name of this field.
+     *
+     * @return
+     */
     public String getTable() {
         return table;
     }
 
+    /**
+     * Set the table name of this field.
+     *
+     * @param table
+     */
     public void setTable(String table) {
         this.table = table;
+    }
+
+    /**
+     * Gets the data type of this field.
+     *
+     * @return
+     */
+    public Class getFieldType() {
+        return fieldType;
+    }
+
+    /**
+     * Set the data type of this field.
+     *
+     * @param fieldType
+     */
+    public void setFieldType(Class fieldType) {
+        this.fieldType = fieldType;
+    }
+
+    /**
+     * If this field is empty.
+     *
+     * @return
+     */
+    public boolean isNullValue() {
+        return this.fieldValue == null;
     }
 
     //--------------------------------------------------------------------------
@@ -99,11 +208,11 @@ public class PolarisModelData {
      * @param model an object model.
      * @return list of fields with values and specifications.
      */
-    public static ArrayList<PolarisModelData> reflect(Model model) {
-
+    public static ArrayList<PolarisRecordData> reflect(Model model) {
+        
         int primaryKeyCount = 0; // declare 0 pk counts
 
-        ArrayList<PolarisModelData> fieldAnnotations = new ArrayList<>(10);
+        ArrayList<PolarisRecordData> fieldAnnotations = new ArrayList<>(10);
         // get the declared fields
         Field[] fields = model.getClass().getDeclaredFields();
         // read declared fields.
@@ -115,9 +224,9 @@ public class PolarisModelData {
                 continue;
             }
             // create model annotation
-            PolarisModelData pma = new PolarisModelData();
+            PolarisRecordData pma = new PolarisRecordData();
             // read model annotations
-            PolarisModelData.readModelAnnotations(model, pma);
+            PolarisRecordData.readModelAnnotations(model, pma);
             // read field name
             pma.setFieldName(field.getName());
             // read field value
@@ -130,6 +239,10 @@ public class PolarisModelData {
                  */
                 throw new PolarisException("Unable to read field " + field.getName(), e);
             }
+            /**
+             * Get the data type.
+             */
+            pma.setFieldType(field.getType());
             // read annotations
             for (Annotation annotation : annotations) {
                 // get column name
@@ -149,6 +262,10 @@ public class PolarisModelData {
                         throw new PolarisException("Primary Key Annotation must be only used once.");
                     }
                 }
+                
+                if (annotation instanceof AutoFill) {
+                    pma.setAutoFill(true);
+                }
             }
             /**
              * Add To List.
@@ -163,7 +280,7 @@ public class PolarisModelData {
      *
      * @param model
      */
-    private static void readModelAnnotations(Model model, PolarisModelData pma) {
+    private static void readModelAnnotations(Model model, PolarisRecordData pma) {
         Annotation[] annotations = model.getClass().getAnnotations();
         for (Annotation annotation : annotations) {
             if (annotation instanceof Table) {
@@ -172,5 +289,5 @@ public class PolarisModelData {
             }
         }
     }
-
+    
 }

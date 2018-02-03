@@ -32,14 +32,13 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Annotations for table fields.
+ * Columns of the database which set values will be ignored.
  *
  * @author Jhon Melvin
  */
 @Documented
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface Column {
+public @interface AutoFill {
 
-    String value();
 }
