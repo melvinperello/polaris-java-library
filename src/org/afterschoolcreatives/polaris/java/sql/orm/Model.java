@@ -55,6 +55,15 @@ public interface Model {
     boolean update(ConnectionManager con) throws SQLException;
 
     /**
+     * updates a record.
+     *
+     * @param con
+     * @return
+     * @throws java.sql.SQLException
+     */
+    boolean updateFull(ConnectionManager con) throws SQLException;
+
+    /**
      * Delete record.
      *
      * @return

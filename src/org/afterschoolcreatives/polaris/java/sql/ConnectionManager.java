@@ -65,6 +65,14 @@ public class ConnectionManager implements AutoCloseable {
         this.connection.close();
     }
 
+    public void closeQuietly() {
+        try {
+            this.close();
+        } catch (SQLException e) {
+            // ignore error.
+        }
+    }
+
     //--------------------------------------------------------------------------
     // Transaction Methods.
     //--------------------------------------------------------------------------
@@ -85,6 +93,7 @@ public class ConnectionManager implements AutoCloseable {
      */
     public void transactionRollBack() throws SQLException {
         this.connection.rollback();
+        this.transactionEnd();
     }
 
     /**
@@ -102,7 +111,7 @@ public class ConnectionManager implements AutoCloseable {
      *
      * @throws java.sql.SQLException
      */
-    public void transactionEnd() throws SQLException {
+    private void transactionEnd() throws SQLException {
         this.connection.rollback();
         this.connection.setAutoCommit(true);
     }

@@ -32,13 +32,13 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Columns of the database which set values will be ignored.
+ * Fields declared as Read-Only is fully managed by the database engine.
  *
  * @author Jhon Melvin
  */
 @Documented
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface AutoFill {
+public @interface ReadOnly {
 
 }

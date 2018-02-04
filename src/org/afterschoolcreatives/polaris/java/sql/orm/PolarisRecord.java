@@ -51,11 +51,16 @@ import org.afterschoolcreatives.polaris.java.util.StringTools;
  */
 public class PolarisRecord implements Model {
 
+    /**
+     * Escape Character.
+     */
+    private final static String BACKTICK = ""; // used when using reserved words
+    // Used SQL Key Words.
     protected String INSERT_INTO = "INSERT INTO"; // insert keyword
-    protected String BACKTICK = "`"; // used when using reserved words
     protected String VALUES = "VALUES";
     protected String UPDATE = "UPDATE";
     protected String SET = "SET";
+    protected String WHERE = "WHERE";
 
     /**
      * Reflected Table Name.
@@ -115,7 +120,7 @@ public class PolarisRecord implements Model {
          * Create a starting query.
          */
         final String startQuery = this.INSERT_INTO
-                + " " + this.BACKTICK + tableName + this.BACKTICK
+                + " " + BACKTICK + tableName + BACKTICK
                 + " ";
 
         /**
@@ -157,7 +162,7 @@ public class PolarisRecord implements Model {
             /**
              * Construct Values.
              */
-            String fieldName = this.BACKTICK + modelData.getColumnName() + this.BACKTICK;
+            String fieldName = BACKTICK + modelData.getColumnName() + BACKTICK;
             String fieldValue = "?";
             // add parameters.
             queryParameters.add(modelData.getFieldValue());
@@ -216,8 +221,16 @@ public class PolarisRecord implements Model {
         return true;
     }
 
-    @Override
-    public boolean update(ConnectionManager con) throws SQLException {
+    /**
+     * Main Method for update.
+     *
+     * @param con
+     * @param includeNull include null fields in the update this will set the
+     * database values to null.
+     * @return true if there are records affected false if none.
+     * @throws SQLException if failed to execute.
+     */
+    public boolean updateMaster(ConnectionManager con, boolean includeNull) throws SQLException {
         /**
          * Reflection.
          */
@@ -229,10 +242,130 @@ public class PolarisRecord implements Model {
          * Create a starting query.
          */
         final String startQuery = this.UPDATE
-                + " " + this.BACKTICK + tableName + this.BACKTICK
+                + " " + BACKTICK + tableName + BACKTICK
                 + " " + this.SET + " ";
+        /**
+         * Create Parameter Holder.
+         */
+        ArrayList<Object> queryParameters = new ArrayList<>();
+        /**
+         * Create Primary Key Holder if any.
+         */
+        PolarisRecordData primaryKeyData = null;
 
-        return true;
+        StringBuilder updateBuilder = new StringBuilder();
+        for (int cursor = 0; cursor < fields.size(); cursor++) {
+            PolarisRecordData modelData = fields.get(cursor);
+            /**
+             * Check if primary.
+             */
+            if (modelData.isPrimaryKey()) {
+                primaryKeyData = modelData;
+                continue; // skip if primary key
+            }
+
+            /**
+             * Skip if auto-fill.
+             */
+            if (modelData.isAutoFill()) {
+                continue;
+            }
+
+            /**
+             * Include null ?.
+             */
+            if (!includeNull) {
+                /**
+                 * Skip if null.
+                 */
+                if (modelData.isNullValue()) {
+                    continue; // skip also
+                }
+            }
+
+            /**
+             * Construct Values.
+             */
+            String updateField = BACKTICK + modelData.getColumnName() + BACKTICK + " = ?";
+            /**
+             * Add Parameters.
+             */
+            queryParameters.add(modelData.getFieldValue());
+
+            /**
+             * append to query.
+             */
+            updateBuilder.append(updateField);
+            /**
+             * Append comma.
+             */
+            updateBuilder.append(",");
+        }
+
+        /**
+         * Remove Excess Comma.
+         */
+        if (updateBuilder.charAt(updateBuilder.length() - 1) == ',') {
+            updateBuilder.deleteCharAt(updateBuilder.length() - 1);
+        }
+
+        /**
+         * Create Where Clause if has primary key.
+         */
+        if (primaryKeyData == null) {
+            throw new PolarisException("Cannot Execute Update: No Primary Key is Annotated");
+        }
+
+        if (primaryKeyData.getFieldValue() == null) {
+            throw new PolarisException("Cannot Execute Update: Primary Key is Null");
+        }
+        /**
+         * Created Where Clause.
+         */
+        String whereClause = " " + this.WHERE + " "
+                + BACKTICK + primaryKeyData.getColumnName() + BACKTICK
+                + " = ?;";
+
+        /**
+         * Where Clause Value.
+         */
+        queryParameters.add(primaryKeyData.getFieldValue());
+        final String generatedQuery = startQuery + updateBuilder.toString() + whereClause;
+        System.out.println(generatedQuery);
+        /**
+         * Execute Update.
+         */
+        int res = con.update(StringTools.clearExtraSpaces(generatedQuery), queryParameters.toArray());
+        /**
+         * If Nothing was affected by the update.
+         */
+        return res != 0;
+    }
+
+    /**
+     * Updates an object to the database. this update method skips the null
+     * fields.
+     *
+     * @param con
+     * @return true if there are records affected false if none.
+     * @throws SQLException if failed to execute.
+     */
+    @Override
+    public boolean update(ConnectionManager con) throws SQLException {
+        return updateMaster(con, false);
+    }
+
+    /**
+     * Updates an object to the database. includes the null values in the
+     * update.
+     *
+     * @param con
+     * @return true if there are records affected false if none.
+     * @throws SQLException SQLException if failed to execute.
+     */
+    @Override
+    public boolean updateFull(ConnectionManager con) throws SQLException {
+        return updateMaster(con, true);
     }
 
     @Override

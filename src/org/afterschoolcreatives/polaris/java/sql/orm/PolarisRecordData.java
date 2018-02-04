@@ -32,10 +32,10 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import org.afterschoolcreatives.polaris.java.PolarisException;
-import org.afterschoolcreatives.polaris.java.sql.orm.annotations.AutoFill;
 import org.afterschoolcreatives.polaris.java.sql.orm.annotations.Column;
 import org.afterschoolcreatives.polaris.java.sql.orm.annotations.PrimaryKey;
 import org.afterschoolcreatives.polaris.java.sql.orm.annotations.Table;
+import org.afterschoolcreatives.polaris.java.sql.orm.annotations.ReadOnly;
 
 /**
  * A Class Data Holder that keeps the important values during reflection scan.
@@ -264,7 +264,7 @@ public class PolarisRecordData {
                     }
                 }
                 
-                if (annotation instanceof AutoFill) {
+                if (annotation instanceof ReadOnly) {
                     pma.setAutoFill(true);
                 }
             }
