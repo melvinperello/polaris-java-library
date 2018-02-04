@@ -23,62 +23,49 @@
  * SOFTWARE.
  *
  */
-package org.afterschoolcreatives.polaris.java.sql.builder;
+package org.afterschoolcreatives.polaris.java.util;
 
-import java.util.Arrays;
+import org.afterschoolcreatives.polaris.java.PolarisException;
 
 /**
- * A simple query builder that allows SQL statements to be readable and
- * manageable.
+ * For Reflective Operations.
  *
  * @author Jhon Melvin
  */
-public class SimpleQuery extends QueryBuilder {
+public class PolarisWrapper {
 
     /**
-     * Constructor.
-     */
-    public SimpleQuery() {
-        super();
-    }
-
-    /**
-     * Append a query statement with parameters.
+     * Automatically Wraps a primitive data type to its specific wrapper class.
      *
-     * @param query
-     * @param value
+     * @param type
      * @return
      */
-    public SimpleQuery addStatementWithParameter(String query, Object... value) {
-        this.addStatement(query);
-        this.addParameter(value);
-        return this;
-    }
-
-    /**
-     * Add a statement.
-     *
-     * @param query
-     * @return
-     */
-    public SimpleQuery addStatement(String query) {
-        this.queryString.append(" ");
-        this.queryString.append(query);
-        this.queryString.append(" ");
-        return this;
-    }
-
-    /**
-     * Add a Parameter.
-     *
-     * @param value
-     * @return
-     */
-    public SimpleQuery addParameter(Object... value) {
-        if (value.length != 0) {
-            this.parameterList.addAll(Arrays.asList(value));
+    public final static Class autoBox(Class type) {
+        if (!type.isPrimitive()) {
+            return type;
         }
-        return this;
+
+        if (type.equals(boolean.class)) {
+            return Boolean.class;
+        } else if (type.equals(byte.class)) {
+            return Byte.class;
+        } else if (type.equals(char.class)) {
+            return Character.class;
+        } else if (type.equals(double.class)) {
+            return Double.class;
+        } else if (type.equals(float.class)) {
+            return Float.class;
+        } else if (type.equals(int.class)) {
+            return Integer.class;
+        } else if (type.equals(long.class)) {
+            return Long.class;
+        } else if (type.equals(short.class)) {
+            return Short.class;
+        } else if (type.equals(void.class)) {
+            return Void.class;
+        }
+
+        throw new PolarisException("Unknown Primitive Type");
     }
 
 }

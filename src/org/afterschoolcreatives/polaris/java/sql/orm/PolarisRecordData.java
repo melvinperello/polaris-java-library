@@ -242,6 +242,7 @@ public class PolarisRecordData {
             /**
              * Get the data type.
              */
+            
             pma.setFieldType(field.getType());
             // read annotations
             for (Annotation annotation : annotations) {

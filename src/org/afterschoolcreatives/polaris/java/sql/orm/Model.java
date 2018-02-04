@@ -43,14 +43,16 @@ public interface Model {
      * @return
      * @throws java.sql.SQLException
      */
-    void insert(ConnectionManager con) throws SQLException;
+    boolean insert(ConnectionManager con) throws SQLException;
 
     /**
      * updates a record.
      *
+     * @param con
      * @return
+     * @throws java.sql.SQLException
      */
-    boolean update();
+    boolean update(ConnectionManager con) throws SQLException;
 
     /**
      * Delete record.

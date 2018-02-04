@@ -28,11 +28,14 @@ package org.afterschoolcreatives.polaris.java.sql.orm;
 import java.beans.IntrospectionException;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import org.afterschoolcreatives.polaris.java.PolarisException;
 import org.afterschoolcreatives.polaris.java.sql.ConnectionManager;
+import org.afterschoolcreatives.polaris.java.util.PolarisWrapper;
+import org.afterschoolcreatives.polaris.java.util.StringTools;
 
 /**
  * The Most basic implementation of the model interface.
@@ -51,6 +54,43 @@ public class PolarisRecord implements Model {
     protected String INSERT_INTO = "INSERT INTO"; // insert keyword
     protected String BACKTICK = "`"; // used when using reserved words
     protected String VALUES = "VALUES";
+    protected String UPDATE = "UPDATE";
+    protected String SET = "SET";
+
+    /**
+     * Reflected Table Name.
+     */
+    private String classTableName;
+    /**
+     * Reflected Fields.
+     */
+    private ArrayList<PolarisRecordData> classFields;
+
+    /**
+     * Uses reflection to introspect the model.
+     */
+    private void reflect() {
+        /**
+         * Use Reflections to get the field data.
+         */
+        ArrayList<PolarisRecordData> locFields = PolarisRecordData.reflect(this);
+        /**
+         * If there is no fields throw an exception.
+         */
+        if (locFields.isEmpty()) {
+            throw new PolarisException("No Declared Fields");
+        }
+        /**
+         * Get the table name from the first entry.
+         */
+        String locTableName = locFields.get(0).getTable();
+
+        /**
+         * Assign to class variables.
+         */
+        this.classFields = locFields;
+        this.classTableName = locTableName;
+    }
 
     /**
      * Inserts a new record to the database using dynamic query. fields that are
@@ -58,25 +98,18 @@ public class PolarisRecord implements Model {
      * the statement. In this way the query will be optimized to the needed data
      * only.
      *
+     * @return true when there is a generated key false if there is none.
      * @param con Connection Manager that will be used.
      * @throws SQLException if there was an error in inserting the data.
      */
     @Override
-    public void insert(ConnectionManager con) throws SQLException {
+    public boolean insert(ConnectionManager con) throws SQLException {
         /**
-         * Use Reflections to get the field data.
+         * Reflection.
          */
-        ArrayList<PolarisRecordData> fields = PolarisRecordData.reflect(this);
-        /**
-         * If there is no fields throw an exception.
-         */
-        if (fields.isEmpty()) {
-            throw new PolarisException("No Declared Fields");
-        }
-        /**
-         * Get the table name from the first entry.
-         */
-        String tableName = fields.get(0).getTable();
+        this.reflect();
+        ArrayList<PolarisRecordData> fields = this.classFields;
+        String tableName = this.classTableName;
 
         /**
          * Create a starting query.
@@ -162,23 +195,44 @@ public class PolarisRecord implements Model {
          * Execute Query. the generated key will be null if no keys are
          * generated.
          */
-        Object generatedKey = con.insert(generatedQuery, queryParameters.toArray());
+        Object generatedKey = con.insert(StringTools.clearExtraSpaces(generatedQuery), queryParameters.toArray());
         /**
          * Set the generated key as the ID value of this object.
          */
         if (primaryKeyData != null && generatedKey != null) {
             try {
+                Method convert = PolarisWrapper.autoBox(primaryKeyData.getFieldType()).getMethod("valueOf", String.class);
+                Object convertedKey = convert.invoke(null, generatedKey.toString());
                 // this has no return value.
-                new PropertyDescriptor(primaryKeyData.getFieldName(), this.getClass()).getWriteMethod().invoke(this, Integer.valueOf(generatedKey.toString()));
-            } catch (IntrospectionException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-
+                new PropertyDescriptor(primaryKeyData.getFieldName(), this.getClass()).getWriteMethod().invoke(this, convertedKey);
+            } catch (IntrospectionException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
+                // cannot retrieve generated key
+                /**
+                 * Logging Engine will be added.
+                 */
+                return false;
             }
         }
+        return true;
     }
 
     @Override
-    public boolean update() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public boolean update(ConnectionManager con) throws SQLException {
+        /**
+         * Reflection.
+         */
+        this.reflect();
+        ArrayList<PolarisRecordData> fields = this.classFields;
+        String tableName = this.classTableName;
+
+        /**
+         * Create a starting query.
+         */
+        final String startQuery = this.UPDATE
+                + " " + this.BACKTICK + tableName + this.BACKTICK
+                + " " + this.SET + " ";
+
+        return true;
     }
 
     @Override

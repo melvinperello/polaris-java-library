@@ -23,62 +23,38 @@
  * SOFTWARE.
  *
  */
-package org.afterschoolcreatives.polaris.java.sql.builder;
+package org.afterschoolcreatives.polaris.java;
 
-import java.util.Arrays;
+import java.io.InputStream;
+import java.net.URL;
 
 /**
- * A simple query builder that allows SQL statements to be readable and
- * manageable.
  *
  * @author Jhon Melvin
  */
-public class SimpleQuery extends QueryBuilder {
+public class PolarisApplication {
+
+    private final static String INTERNAL_RESOURCE = "/res/";
+    private final static String EXTERNAL_RESOURCE = "extres/";
 
     /**
-     * Constructor.
+     * Get Internal Resource Stream.
+     *
+     * @param location
+     * @return
      */
-    public SimpleQuery() {
-        super();
+    public InputStream getResourceStream(String location) {
+        return this.getClass().getResourceAsStream(PolarisApplication.INTERNAL_RESOURCE + location);
     }
 
     /**
-     * Append a query statement with parameters.
+     * Get Internal Resource URL.
      *
-     * @param query
-     * @param value
+     * @param location
      * @return
      */
-    public SimpleQuery addStatementWithParameter(String query, Object... value) {
-        this.addStatement(query);
-        this.addParameter(value);
-        return this;
-    }
-
-    /**
-     * Add a statement.
-     *
-     * @param query
-     * @return
-     */
-    public SimpleQuery addStatement(String query) {
-        this.queryString.append(" ");
-        this.queryString.append(query);
-        this.queryString.append(" ");
-        return this;
-    }
-
-    /**
-     * Add a Parameter.
-     *
-     * @param value
-     * @return
-     */
-    public SimpleQuery addParameter(Object... value) {
-        if (value.length != 0) {
-            this.parameterList.addAll(Arrays.asList(value));
-        }
-        return this;
+    public URL getResourceURL(String location) {
+        return this.getClass().getResource(PolarisApplication.INTERNAL_RESOURCE + location);
     }
 
 }
