@@ -68,7 +68,7 @@ public interface Model {
      *
      * @return
      */
-    boolean delete();
+    boolean delete(ConnectionManager con) throws SQLException;
 
     /**
      * Find an instance using the primary key.

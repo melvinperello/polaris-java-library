@@ -61,6 +61,8 @@ public class PolarisRecord implements Model {
     protected String UPDATE = "UPDATE";
     protected String SET = "SET";
     protected String WHERE = "WHERE";
+    protected String DELETE = "DELETE";
+    protected String FROM = "FROM";
 
     /**
      * Reflected Table Name.
@@ -368,26 +370,88 @@ public class PolarisRecord implements Model {
         return updateMaster(con, true);
     }
 
+    /**
+     * Deletes an object to the database using the primary key. the field
+     * annotated with PrimaryKey must not be null in order to execute the
+     * operation.
+     *
+     * @param con
+     * @return
+     * @throws SQLException
+     */
     @Override
-    public boolean delete() {
+    public boolean delete(ConnectionManager con) throws SQLException {
+        /**
+         * Reflection.
+         */
+        this.reflect();
+        ArrayList<PolarisRecordData> fields = this.classFields;
+        String tableName = this.classTableName;
+
+        String query = "DELETE FROM `inquiry` WHERE `_rowid_` IN (?);";
+
+        /**
+         * Create a starting query.
+         */
+        final String startQuery = this.DELETE
+                + " " + this.FROM
+                + " " + BACKTICK + tableName + BACKTICK;
+
+        /**
+         * Create Primary Key Holder if any.
+         */
+        PolarisRecordData primaryKeyData = null;
+
+        for (int cursor = 0; cursor < fields.size(); cursor++) {
+            PolarisRecordData modelData = fields.get(cursor);
+            /**
+             * Check if primary.
+             */
+            if (modelData.isPrimaryKey()) {
+                primaryKeyData = modelData;
+                break; // skip if primary key
+            }
+        }
+
+        /**
+         * Check Primary Key.
+         */
+        if (primaryKeyData == null) {
+            throw new PolarisException("Cannot Execute Update: No Primary Key is Annotated");
+        }
+        if (primaryKeyData.getFieldValue() == null) {
+            throw new PolarisException("Cannot Execute Update: Primary Key is Null");
+        }
+
+        /**
+         * Created Where Clause.
+         */
+        String whereClause = " " + this.WHERE + " "
+                + BACKTICK + primaryKeyData.getColumnName() + BACKTICK
+                + " = ?;";
+
+        final String generatedQuery = startQuery + whereClause;
+        System.out.println(generatedQuery);
+
+        int res = con.update(StringTools.clearExtraSpaces(generatedQuery), primaryKeyData.getFieldValue());
+        /**
+         * If Nothing was affected by the update.
+         */
+        return res != 0;
+    }
+
+    @Override
+    public boolean find(Object id) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public boolean find(Object id
-    ) {
+    public boolean findQuery(String sql) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public boolean findQuery(String sql
-    ) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public List findMany(String sql
-    ) {
+    public List findMany(String sql) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
