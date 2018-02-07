@@ -27,12 +27,13 @@ package org.afterschoolcreatives.polaris.java;
 
 import java.io.InputStream;
 import java.net.URL;
+import org.afterschoolcreatives.polaris.java.sql.ConnectionFactory;
 
 /**
  *
  * @author Jhon Melvin
  */
-public class PolarisApplication {
+public abstract class PolarisApplication {
 
     private final static String INTERNAL_RESOURCE = "/res/";
     private final static String EXTERNAL_RESOURCE = "extres/";
@@ -56,5 +57,12 @@ public class PolarisApplication {
     public URL getResourceURL(String location) {
         return this.getClass().getResource(PolarisApplication.INTERNAL_RESOURCE + location);
     }
+
+    /**
+     * Return this application's connection factory.
+     *
+     * @return
+     */
+    public abstract ConnectionFactory getConnectionFactory();
 
 }
