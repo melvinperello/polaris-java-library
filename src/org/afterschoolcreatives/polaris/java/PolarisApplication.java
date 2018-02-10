@@ -25,6 +25,7 @@
  */
 package org.afterschoolcreatives.polaris.java;
 
+import java.io.File;
 import java.io.InputStream;
 import java.net.URL;
 import org.afterschoolcreatives.polaris.java.sql.ConnectionFactory;
@@ -35,8 +36,10 @@ import org.afterschoolcreatives.polaris.java.sql.ConnectionFactory;
  */
 public abstract class PolarisApplication {
 
-    private final static String INTERNAL_RESOURCE = "/res/";
-    private final static String EXTERNAL_RESOURCE = "extres/";
+    /**
+     * Uniform Folder inside the source for binaries.
+     */
+    private final static String INTERNAL_RESOURCE = "/storage/";
 
     /**
      * Get Internal Resource Stream.
@@ -59,7 +62,7 @@ public abstract class PolarisApplication {
     }
 
     /**
-     * Return this application's connection factory.
+     * Return this application's default connection factory.
      *
      * @return
      */

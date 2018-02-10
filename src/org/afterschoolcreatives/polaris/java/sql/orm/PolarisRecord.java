@@ -34,7 +34,7 @@ import java.lang.reflect.Method;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import org.afterschoolcreatives.polaris.java.PolarisException;
+import org.afterschoolcreatives.polaris.java.PolarisAnnotationException;
 import org.afterschoolcreatives.polaris.java.sql.ConnectionManager;
 import org.afterschoolcreatives.polaris.java.sql.orm.annotations.Column;
 import org.afterschoolcreatives.polaris.java.sql.orm.annotations.FetchOnly;
@@ -44,22 +44,19 @@ import org.afterschoolcreatives.polaris.java.util.PolarisWrapper;
 import org.afterschoolcreatives.polaris.java.util.StringTools;
 
 /**
- * The Most basic implementation of the model interface.
- *
- * Supports the following Databases by default:
- * <ul>
- * <li>MySQL</li>
- * <li>MariaDB</li>
- * <li>SQLite</li>
- * </ul>
+ * My First Attempt to create a model. this is the basic implementation of the
+ * model interface which will be using reflection to perform basic CRUD
+ * operations. This model only supports MariaDB, MySQL and SQLite.
  *
  * @author Jhon Melvin
  */
 public class PolarisRecord implements Model {
 
     /**
-     * Escape Character.
+     * Escape Character. This was deprecated and the usage of the escape
+     * character must be managed by the sub classes.
      */
+    @Deprecated
     private final static String BACKTICK = ""; // used when using reserved words
     // Used SQL Key Words.
     protected String INSERT_INTO = "INSERT INTO"; // insert keyword
@@ -91,7 +88,7 @@ public class PolarisRecord implements Model {
          * If there is no fields throw an exception.
          */
         if (locFields.isEmpty()) {
-            throw new PolarisException("No Declared Fields");
+            throw new PolarisAnnotationException("No Fields are Annotated and cannot be recognized.");
         }
         /**
          * Get the table name from the first entry.
@@ -321,11 +318,11 @@ public class PolarisRecord implements Model {
          * Create Where Clause if has primary key.
          */
         if (primaryKeyData == null) {
-            throw new PolarisException("Cannot Execute Update: No Primary Key is Annotated");
+            throw new PolarisAnnotationException("Cannot Execute Update: No Field is Annotated as Primary Key.");
         }
 
         if (primaryKeyData.getFieldValue() == null) {
-            throw new PolarisException("Cannot Execute Update: Primary Key is Null");
+            throw new PolarisAnnotationException("Cannot Execute Update: Primary Key Value is Null");
         }
         /**
          * Created Where Clause.
@@ -382,8 +379,9 @@ public class PolarisRecord implements Model {
      * operation.
      *
      * @param con
-     * @return
-     * @throws SQLException
+     * @return true if there was an entry deleted. false if does not affect any
+     * record.
+     * @throws SQLException if failed to execute.
      */
     @Override
     public boolean delete(ConnectionManager con) throws SQLException {
@@ -393,8 +391,6 @@ public class PolarisRecord implements Model {
         this.reflect();
         ArrayList<RecordData> fields = this.classFields;
         String tableName = this.classTableName;
-
-        String query = "DELETE FROM `inquiry` WHERE `_rowid_` IN (?);";
 
         /**
          * Create a starting query.
@@ -423,10 +419,11 @@ public class PolarisRecord implements Model {
          * Check Primary Key.
          */
         if (primaryKeyData == null) {
-            throw new PolarisException("Cannot Execute Update: No Primary Key is Annotated");
+            throw new PolarisAnnotationException("Cannot Execute Delete: No Field is Annotated as Primary Key.");
         }
+
         if (primaryKeyData.getFieldValue() == null) {
-            throw new PolarisException("Cannot Execute Update: Primary Key is Null");
+            throw new PolarisAnnotationException("Cannot Execute Delete: Primary Key Value is Null.");
         }
 
         /**
@@ -446,25 +443,31 @@ public class PolarisRecord implements Model {
         return res != 0;
     }
 
+    //--------------------------------------------------------------------------
+    // SELECT METHODS.
+    //--------------------------------------------------------------------------
     @Override
-    public boolean find(Object id) {
+    public boolean find(ConnectionManager con, Object id) throws SQLException {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public boolean findQuery(String sql) {
+    public boolean findQuery(ConnectionManager con, String sql) throws SQLException {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public List findMany(String sql) {
+    public List findMany(ConnectionManager con, String sql) throws SQLException {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
+    //--------------------------------------------------------------------------
+    // INNER CLASS REFLECTION DATA
+    // This class is only exclusive to be used inside Polaris Record.
+    //--------------------------------------------------------------------------
     /**
      * A Class Data Holder that keeps the important values during reflection
      * scan.
-     *
      */
     private static class RecordData {
 
@@ -634,6 +637,8 @@ public class PolarisRecord implements Model {
          */
         public static ArrayList<RecordData> reflect(Model model) {
 
+            String tableName = null;
+
             int primaryKeyCount = 0; // declare 0 pk counts
 
             ArrayList<RecordData> fieldAnnotations = new ArrayList<>(10);
@@ -649,8 +654,21 @@ public class PolarisRecord implements Model {
                 }
                 // create model annotation
                 RecordData pma = new RecordData();
-                // read model annotations
-                RecordData.readModelAnnotations(model, pma);
+                /**
+                 * Read Model Annotations.
+                 */
+                if (tableName == null) {
+                    RecordData.readModelAnnotations(model, pma);
+                    /**
+                     * on the first run of read model annotations the table name
+                     * should already be fetched.
+                     */
+                    tableName = pma.getTable();
+                } else {
+                    // only execute the model reflection once.
+                    pma.setTable(tableName);
+                }
+
                 // read field name
                 pma.setFieldName(field.getName());
                 // read field value
@@ -661,7 +679,7 @@ public class PolarisRecord implements Model {
                     /**
                      * Throw runtime error.
                      */
-                    throw new PolarisException("Unable to read field " + field.getName(), e);
+                    throw new PolarisAnnotationException("Unable to set the generated key." + field.getName(), e);
                 }
                 /**
                  * Get the data type.
@@ -684,7 +702,7 @@ public class PolarisRecord implements Model {
                             /**
                              * Throw error if primary key is more than one.
                              */
-                            throw new PolarisException("Primary Key Annotation must be only used once.");
+                            throw new PolarisAnnotationException("Primary Key Annotation must be only used once.");
                         }
                     }
 
@@ -710,11 +728,14 @@ public class PolarisRecord implements Model {
             for (Annotation annotation : annotations) {
                 if (annotation instanceof Table) {
                     Table table = (Table) annotation;
-                    pma.setTable(table.value());
+                    pma.setTable(BACKTICK + table.value() + BACKTICK);
                 }
             }
         }
 
     } // end of polaris record data
+    //--------------------------------------------------------------------------
+    // END OF INNER CLASS REFLECTION DATA
+    //--------------------------------------------------------------------------
 
-}
+} // END OF POLARIS RECORD.

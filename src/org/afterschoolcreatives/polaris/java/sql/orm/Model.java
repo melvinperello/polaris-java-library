@@ -66,33 +66,44 @@ public interface Model {
     /**
      * Delete record.
      *
+     * @param con
      * @return
+     * @throws java.sql.SQLException
      */
     boolean delete(ConnectionManager con) throws SQLException;
 
     /**
      * Find an instance using the primary key.
      *
+     * @param con
      * @param id
      * @return
+     * @throws java.sql.SQLException
      */
-    boolean find(Object id);
+    boolean find(ConnectionManager con, Object id) throws SQLException;
 
     /**
      * Find an instance using an SQL statement. the result will be truncated
-     * only to the first result. A LIMIT 1 or similar method should be added.
+     * only to the first result. A LIMIT 1 or similar method should be added. to
+     * optimize the query. even without the LIMIT constraint only the first
+     * result will be mapped.
      *
+     * @param con
      * @param sql
      * @return
+     * @throws java.sql.SQLException
      */
-    boolean findQuery(String sql);
+    boolean findQuery(ConnectionManager con, String sql) throws SQLException;
 
     /**
-     * returns a list of instance that matches the query.
+     * returns a list of instance that matches the query. maps the first result
+     * to the caller model.
      *
+     * @param con
      * @param sql
      * @return
+     * @throws java.sql.SQLException
      */
-    List findMany(String sql);
+    List findMany(ConnectionManager con, String sql) throws SQLException;
 
 }

@@ -93,7 +93,7 @@ public class ConnectionManager implements AutoCloseable {
      */
     public void transactionRollBack() throws SQLException {
         this.connection.rollback();
-        this.transactionEnd();
+        this.connection.setAutoCommit(true);
     }
 
     /**
@@ -103,16 +103,6 @@ public class ConnectionManager implements AutoCloseable {
      */
     public void transactionCommit() throws SQLException {
         this.connection.commit();
-        this.transactionEnd();
-    }
-
-    /**
-     * Roll backs any active transaction then switches to auto commit mode.
-     *
-     * @throws java.sql.SQLException
-     */
-    private void transactionEnd() throws SQLException {
-        this.connection.rollback();
         this.connection.setAutoCommit(true);
     }
 
@@ -133,13 +123,15 @@ public class ConnectionManager implements AutoCloseable {
     // Class Methods.
     //--------------------------------------------------------------------------
     /**
+     * PRIVATE STATIC METHOD.
+     *
      * inserts parameters to a prepared statement.
      *
      * @param preparedStatement
      * @param parameters
      * @throws SQLException
      */
-    private void insertPreparedParameters(PreparedStatement preparedStatement, Object[] parameters) throws SQLException {
+    private static void insertPreparedParameters(PreparedStatement preparedStatement, Object[] parameters) throws SQLException {
         if (parameters != null) {
             for (int index = 1; index <= parameters.length; index++) {
                 preparedStatement.setObject(index, parameters[index - 1]);
@@ -148,6 +140,8 @@ public class ConnectionManager implements AutoCloseable {
     }
 
     /**
+     * PRIVATE STATIC METHOD.
+     *
      * Executes the prepared statement then Converts the Result Set into a
      * Result List object so that the Result Set Can be closed immediately.
      *
@@ -157,7 +151,7 @@ public class ConnectionManager implements AutoCloseable {
      * @return
      * @throws SQLException
      */
-    private DataSet formatResultSet(ResultSet resultSet) throws SQLException {
+    private static DataSet formatResultSet(ResultSet resultSet) throws SQLException {
         try {
             // create blank data set.
             DataSet dataSet = new DataSet();
@@ -214,7 +208,7 @@ public class ConnectionManager implements AutoCloseable {
         try {
             // added return generated key constant
             preparedStatement = this.connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
-            this.insertPreparedParameters(preparedStatement, parameters);
+            ConnectionManager.insertPreparedParameters(preparedStatement, parameters);
             //------------------------------------------------------------------
             preparedStatement.executeUpdate(); // ignore results
             //------------------------------------------------------------------
@@ -294,7 +288,7 @@ public class ConnectionManager implements AutoCloseable {
         PreparedStatement preparedStatement = null;
         try {
             preparedStatement = this.connection.prepareStatement(query);
-            this.insertPreparedParameters(preparedStatement, parameters);
+            ConnectionManager.insertPreparedParameters(preparedStatement, parameters);
             //------------------------------------------------------------------
             int result = preparedStatement.executeUpdate();
             //------------------------------------------------------------------
@@ -336,10 +330,10 @@ public class ConnectionManager implements AutoCloseable {
                     ResultSet.TYPE_SCROLL_INSENSITIVE,
                     ResultSet.CONCUR_READ_ONLY*/);
             //----------------------------------------------------------------------
-            this.insertPreparedParameters(preparedStatement, parameters);
+            ConnectionManager.insertPreparedParameters(preparedStatement, parameters);
             //----------------------------------------------------------------------
             resultSet = preparedStatement.executeQuery();
-            DataSet resultList = this.formatResultSet(resultSet);
+            DataSet resultList = ConnectionManager.formatResultSet(resultSet);
             //----------------------------------------------------------------------
             return resultList;
         } finally {
