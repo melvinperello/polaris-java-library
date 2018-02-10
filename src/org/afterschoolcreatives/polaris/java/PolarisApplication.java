@@ -25,7 +25,6 @@
  */
 package org.afterschoolcreatives.polaris.java;
 
-import java.io.File;
 import java.io.InputStream;
 import java.net.URL;
 import org.afterschoolcreatives.polaris.java.sql.ConnectionFactory;

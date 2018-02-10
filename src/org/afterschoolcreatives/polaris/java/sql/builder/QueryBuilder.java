@@ -26,6 +26,7 @@
 package org.afterschoolcreatives.polaris.java.sql.builder;
 
 import java.util.ArrayList;
+import org.afterschoolcreatives.polaris.java.util.StringTools;
 
 /**
  * A base class for all the query builders.
@@ -51,7 +52,7 @@ public abstract class QueryBuilder {
      * @return
      */
     public String getQueryString() {
-        return this.queryString.toString().replaceAll("\\s+", " ").trim();// trim left and right space.
+        return StringTools.clearExtraSpaces(this.queryString.toString()).trim();
     }
 
     /**

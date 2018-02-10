@@ -28,6 +28,7 @@ package org.afterschoolcreatives.polaris.java.sql.orm;
 import java.sql.SQLException;
 import java.util.List;
 import org.afterschoolcreatives.polaris.java.sql.ConnectionManager;
+import org.afterschoolcreatives.polaris.java.sql.builder.QueryBuilder;
 
 /**
  * Specification for model sub classes.
@@ -89,21 +90,22 @@ public interface Model {
      * result will be mapped.
      *
      * @param con
-     * @param sql
+     * @param builder
      * @return
      * @throws java.sql.SQLException
      */
-    boolean findQuery(ConnectionManager con, String sql) throws SQLException;
+    boolean findQuery(ConnectionManager con, QueryBuilder builder) throws SQLException;
 
     /**
-     * returns a list of instance that matches the query. maps the first result
-     * to the caller model.
+     * returns a list of instance that matches the query. this will not write
+     * anything on the caller instance.
      *
+     * @param <T>
      * @param con
-     * @param sql
+     * @param builder
      * @return
      * @throws java.sql.SQLException
      */
-    List findMany(ConnectionManager con, String sql) throws SQLException;
+    <T> List<T> findMany(ConnectionManager con, QueryBuilder builder) throws SQLException;
 
 }

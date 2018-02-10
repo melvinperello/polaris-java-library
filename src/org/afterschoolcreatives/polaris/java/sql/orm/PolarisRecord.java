@@ -34,8 +34,14 @@ import java.lang.reflect.Method;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.afterschoolcreatives.polaris.java.PolarisAnnotationException;
+import org.afterschoolcreatives.polaris.java.PolarisException;
 import org.afterschoolcreatives.polaris.java.sql.ConnectionManager;
+import org.afterschoolcreatives.polaris.java.sql.DataRow;
+import org.afterschoolcreatives.polaris.java.sql.DataSet;
+import org.afterschoolcreatives.polaris.java.sql.builder.QueryBuilder;
 import org.afterschoolcreatives.polaris.java.sql.orm.annotations.Column;
 import org.afterschoolcreatives.polaris.java.sql.orm.annotations.FetchOnly;
 import org.afterschoolcreatives.polaris.java.sql.orm.annotations.PrimaryKey;
@@ -53,19 +59,19 @@ import org.afterschoolcreatives.polaris.java.util.StringTools;
 public class PolarisRecord implements Model {
 
     /**
-     * Escape Character. This was deprecated and the usage of the escape
-     * character must be managed by the sub classes.
+     * ESCAPE CHARACTER.
      */
-    @Deprecated
-    private final static String BACKTICK = ""; // used when using reserved words
+    protected String sqlEscapeCharacter = "`"; // used when using reserved words
     // Used SQL Key Words.
-    protected String INSERT_INTO = "INSERT INTO"; // insert keyword
-    protected String VALUES = "VALUES";
-    protected String UPDATE = "UPDATE";
-    protected String SET = "SET";
-    protected String WHERE = "WHERE";
-    protected String DELETE = "DELETE";
-    protected String FROM = "FROM";
+    protected String sqlInsertInto = "INSERT INTO"; // insert keyword
+    protected String sqlValues = "VALUES";
+    protected String sqlUpdate = "UPDATE";
+    protected String sqlSet = "SET";
+    protected String sqlWhere = "WHERE";
+    protected String sqlDelete = "DELETE";
+    protected String sqlFrom = "FROM";
+    protected String sqlSelect = "SELECT";
+    protected String sqlLimitOne = "LIMIT 1";
 
     /**
      * Reflected Table Name.
@@ -124,8 +130,8 @@ public class PolarisRecord implements Model {
         /**
          * Create a starting query.
          */
-        final String startQuery = this.INSERT_INTO
-                + " " + BACKTICK + tableName + BACKTICK
+        final String startQuery = this.sqlInsertInto
+                + " " + sqlEscapeCharacter + tableName + sqlEscapeCharacter
                 + " ";
 
         /**
@@ -167,7 +173,7 @@ public class PolarisRecord implements Model {
             /**
              * Construct Values.
              */
-            String fieldName = BACKTICK + modelData.getColumnName() + BACKTICK;
+            String fieldName = sqlEscapeCharacter + modelData.getColumnName() + sqlEscapeCharacter;
             String fieldValue = "?";
             // add parameters.
             queryParameters.add(modelData.getFieldValue());
@@ -199,7 +205,7 @@ public class PolarisRecord implements Model {
         /**
          * Finalize Generated Query.
          */
-        final String generatedQuery = startQuery + fieldBuilder.toString() + " " + this.VALUES + " " + valueBuilder.toString() + ";";
+        final String generatedQuery = startQuery + fieldBuilder.toString() + " " + this.sqlValues + " " + valueBuilder.toString() + ";";
         System.out.println(generatedQuery);
         /**
          * Execute Query. the generated key will be null if no keys are
@@ -214,16 +220,26 @@ public class PolarisRecord implements Model {
                 Method convert = PolarisWrapper.autoBox(primaryKeyData.getFieldType()).getMethod("valueOf", String.class);
                 Object convertedKey = convert.invoke(null, generatedKey.toString());
                 // this has no return value.
-                new PropertyDescriptor(primaryKeyData.getFieldName(), this.getClass()).getWriteMethod().invoke(this, convertedKey);
-            } catch (IntrospectionException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
-                // cannot retrieve generated key
-                /**
-                 * Logging Engine will be added.
-                 */
+                this.writeValue(this, primaryKeyData.getFieldName(), convertedKey);
+            } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
                 return false;
             }
         }
         return true;
+    }
+
+    /**
+     * Write values to this model field.
+     *
+     * @param fieldName
+     * @param value
+     */
+    private void writeValue(Object object, String fieldName, Object value) {
+        try {
+            new PropertyDescriptor(fieldName, object.getClass()).getWriteMethod().invoke(object, value);
+        } catch (IntrospectionException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
+            throw new PolarisException("Cannot Map Values to this Model: Error Writing on field -> " + fieldName, ex);
+        }
     }
 
     /**
@@ -246,9 +262,9 @@ public class PolarisRecord implements Model {
         /**
          * Create a starting query.
          */
-        final String startQuery = this.UPDATE
-                + " " + BACKTICK + tableName + BACKTICK
-                + " " + this.SET + " ";
+        final String startQuery = this.sqlUpdate
+                + " " + sqlEscapeCharacter + tableName + sqlEscapeCharacter
+                + " " + this.sqlSet + " ";
         /**
          * Create Parameter Holder.
          */
@@ -291,7 +307,7 @@ public class PolarisRecord implements Model {
             /**
              * Construct Values.
              */
-            String updateField = BACKTICK + modelData.getColumnName() + BACKTICK + " = ?";
+            String updateField = sqlEscapeCharacter + modelData.getColumnName() + sqlEscapeCharacter + " = ?";
             /**
              * Add Parameters.
              */
@@ -327,8 +343,8 @@ public class PolarisRecord implements Model {
         /**
          * Created Where Clause.
          */
-        String whereClause = " " + this.WHERE + " "
-                + BACKTICK + primaryKeyData.getColumnName() + BACKTICK
+        String whereClause = " " + this.sqlWhere + " "
+                + sqlEscapeCharacter + primaryKeyData.getColumnName() + sqlEscapeCharacter
                 + " = ?;";
 
         /**
@@ -395,9 +411,9 @@ public class PolarisRecord implements Model {
         /**
          * Create a starting query.
          */
-        final String startQuery = this.DELETE
-                + " " + this.FROM
-                + " " + BACKTICK + tableName + BACKTICK;
+        final String startQuery = this.sqlDelete
+                + " " + this.sqlFrom
+                + " " + sqlEscapeCharacter + tableName + sqlEscapeCharacter;
 
         /**
          * Create Primary Key Holder if any.
@@ -429,8 +445,8 @@ public class PolarisRecord implements Model {
         /**
          * Created Where Clause.
          */
-        String whereClause = " " + this.WHERE + " "
-                + BACKTICK + primaryKeyData.getColumnName() + BACKTICK
+        String whereClause = " " + this.sqlWhere + " "
+                + sqlEscapeCharacter + primaryKeyData.getColumnName() + sqlEscapeCharacter
                 + " = ?;";
 
         final String generatedQuery = startQuery + whereClause;
@@ -444,21 +460,152 @@ public class PolarisRecord implements Model {
     }
 
     //--------------------------------------------------------------------------
-    // SELECT METHODS.
+    // sqlSelect METHODS.
     //--------------------------------------------------------------------------
     @Override
     public boolean find(ConnectionManager con, Object id) throws SQLException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        /**
+         * Reflection.
+         */
+        this.reflect();
+        ArrayList<RecordData> fields = this.classFields;
+        String tableName = this.classTableName;
+
+        /**
+         * Create a starting query.
+         */
+        final String startQuery = this.sqlSelect
+                + " * "
+                + " " + this.sqlFrom
+                + " " + sqlEscapeCharacter + tableName + sqlEscapeCharacter;
+
+        /**
+         * Create Primary Key Holder if any.
+         */
+        RecordData primaryKeyData = null;
+
+        for (int cursor = 0; cursor < fields.size(); cursor++) {
+            RecordData modelData = fields.get(cursor);
+            /**
+             * Check if primary.
+             */
+            if (modelData.isPrimaryKey()) {
+                primaryKeyData = modelData;
+                break; // skip if primary key
+            }
+        }
+
+        /**
+         * Check Primary Key.
+         */
+        if (primaryKeyData == null) {
+            throw new PolarisAnnotationException("Cannot Retrieve Records: No Field is Annotated as Primary Key.");
+        }
+
+        /**
+         * Created Where Clause.
+         */
+        String whereClause = " " + this.sqlWhere + " "
+                + sqlEscapeCharacter + primaryKeyData.getColumnName() + sqlEscapeCharacter
+                + " = ? " + this.sqlLimitOne + ";";
+
+        final String generatedQuery = startQuery + whereClause;
+        System.out.println(generatedQuery);
+
+        // Execute Statement
+        DataRow dr = con.fetchFirst(StringTools.clearExtraSpaces(generatedQuery), id);
+
+        // Check if Empty return false
+        if (dr.isEmpty()) {
+            return false;
+        }
+
+        /**
+         * Map The Data.
+         */
+        for (RecordData field : fields) {
+            Object value = dr.get(field.getColumnName());
+            this.writeValue(this, field.getFieldName(), value);
+        }
+
+        return true;
     }
 
     @Override
-    public boolean findQuery(ConnectionManager con, String sql) throws SQLException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public boolean findQuery(ConnectionManager con, QueryBuilder builder) throws SQLException {
+        /**
+         * Reflection.
+         */
+        this.reflect();
+        ArrayList<RecordData> fields = this.classFields;
+
+        // Execute Statement
+        DataRow dr = con.fetchFirst(builder.getQueryString(), builder.getParameters());
+
+        // Check if Empty return false
+        if (dr.isEmpty()) {
+            return false;
+        }
+
+        /**
+         * Map The Data.
+         */
+        for (RecordData field : fields) {
+            Object value = dr.get(field.getColumnName());
+            this.writeValue(this, field.getFieldName(), value);
+        }
+
+        return true;
     }
 
     @Override
-    public List findMany(ConnectionManager con, String sql) throws SQLException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public <T> List<T> findMany(ConnectionManager con, QueryBuilder builder) throws SQLException {
+        // create list holder
+        List<T> list = new ArrayList<>();
+
+        /**
+         * Reflection.
+         */
+        this.reflect();
+        ArrayList<RecordData> fields = this.classFields;
+
+        // get results
+        DataSet ds = con.fetch(builder.getQueryString(), builder.getParameters());
+
+        // Check if Empty return false
+        if (ds.isEmpty()) {
+            return list; // return an empty list
+        }
+
+        /**
+         * Iterate all over the results
+         */
+        for (DataRow dataRow : ds) {
+            // Check if Empty skip this row
+            if (dataRow.isEmpty()) {
+                continue;
+            }
+            // create a row holder
+            T row = null;
+            try {
+                row = (T) this.getClass().newInstance();
+            } catch (InstantiationException | IllegalAccessException ex) {
+                throw new PolarisException("Cannot Create Model Instance, is there a public and default constructor ?", ex);
+            }
+
+            /**
+             * Map The Data.
+             */
+            for (RecordData field : fields) {
+                Object value = dataRow.get(field.getColumnName());
+                this.writeValue(row, field.getFieldName(), value);
+            }
+
+            list.add(row);
+
+        }
+
+        return list; // return the list
     }
 
     //--------------------------------------------------------------------------
@@ -728,7 +875,7 @@ public class PolarisRecord implements Model {
             for (Annotation annotation : annotations) {
                 if (annotation instanceof Table) {
                     Table table = (Table) annotation;
-                    pma.setTable(BACKTICK + table.value() + BACKTICK);
+                    pma.setTable(table.value());
                 }
             }
         }
