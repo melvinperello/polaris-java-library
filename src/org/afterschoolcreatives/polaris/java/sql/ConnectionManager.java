@@ -31,12 +31,16 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
  * @author Jhon Melvin
  */
 public class ConnectionManager implements AutoCloseable {
+
+    private static final Logger LOGGER = Logger.getLogger(ConnectionManager.class.getName());
 
     /**
      * Connection instance to manage.
@@ -70,6 +74,7 @@ public class ConnectionManager implements AutoCloseable {
             this.close();
         } catch (SQLException e) {
             // ignore error.
+            LOGGER.log(Level.SEVERE, e.toString(), e);
         }
     }
 
@@ -106,6 +111,55 @@ public class ConnectionManager implements AutoCloseable {
         this.connection.setAutoCommit(true);
     }
 
+    /**
+     * Starts a transaction ignoring SQL Exception.
+     *
+     * @return true if no exception and false if there is one.
+     */
+    public boolean transactionStartQuietly() {
+        try {
+            this.transactionStart();
+        } catch (SQLException ex) {
+            // ignore exception.
+            LOGGER.log(Level.SEVERE, ex.toString(), ex);
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Roll backs a transaction ignoring SQL Exception
+     *
+     * @return true if no exception and false if there is one.
+     */
+    public boolean transactionRollBackQuietly() {
+        try {
+            this.transactionRollBack();
+        } catch (SQLException ex) {
+            // ignore exception.
+            LOGGER.log(Level.SEVERE, ex.toString(), ex);
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Commits a transaction ignoring SQL Exception
+     *
+     * @return true if no exception and false if there is one.
+     */
+    public boolean transactionCommitQuietly() {
+        try {
+            this.transactionCommit();
+        } catch (SQLException ex) {
+            // ignore exception.
+            LOGGER.log(Level.SEVERE, ex.toString(), ex);
+            return false;
+        }
+        return true;
+
+    }
+
     //--------------------------------------------------------------------------
     // State Check Methods.
     //--------------------------------------------------------------------------
@@ -113,10 +167,14 @@ public class ConnectionManager implements AutoCloseable {
      * Checks whether this connection manager's connection is open.
      *
      * @return
-     * @throws java.sql.SQLException
      */
-    public boolean isOpen() throws SQLException {
-        return !this.connection.isClosed();
+    public boolean isOpen() {
+        try {
+            return !this.connection.isClosed();
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, e.toString(), e);
+            return false;
+        }
     }
 
     //--------------------------------------------------------------------------
@@ -225,6 +283,7 @@ public class ConnectionManager implements AutoCloseable {
                     return null; // if no generated keys return null
                 }
             } catch (SQLException gkEx) {
+                LOGGER.log(Level.SEVERE, gkEx.toString(), gkEx);
                 // return null for exception in fetching keys this was caught and will not affect the insert method.
                 // this means that even the generated keys was not fetch the insert result will not be affected
                 return null;

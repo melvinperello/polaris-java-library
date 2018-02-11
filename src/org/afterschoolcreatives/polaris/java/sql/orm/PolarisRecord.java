@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.afterschoolcreatives.polaris.java.PolarisAnnotationException;
+import org.afterschoolcreatives.polaris.java.PolarisApplication;
 import org.afterschoolcreatives.polaris.java.PolarisException;
 import org.afterschoolcreatives.polaris.java.sql.ConnectionManager;
 import org.afterschoolcreatives.polaris.java.sql.DataRow;
@@ -58,12 +59,19 @@ import org.afterschoolcreatives.polaris.java.util.StringTools;
  */
 public class PolarisRecord implements Model {
 
+    private static final Logger LOGGER = Logger.getLogger(PolarisRecord.class.getName());
+
+    protected PolarisRecord() {
+
+    }
+
     /**
      * ESCAPE CHARACTER.
      */
     protected String sqlEscapeCharacter = "`"; // used when using reserved words
     // Used SQL Key Words.
-    protected String sqlInsertInto = "INSERT INTO"; // insert keyword
+    protected String sqlInsert = "INSERT"; // insert keyword
+    protected String sqlInto = "INTO";
     protected String sqlValues = "VALUES";
     protected String sqlUpdate = "UPDATE";
     protected String sqlSet = "SET";
@@ -71,7 +79,7 @@ public class PolarisRecord implements Model {
     protected String sqlDelete = "DELETE";
     protected String sqlFrom = "FROM";
     protected String sqlSelect = "SELECT";
-    protected String sqlLimitOne = "LIMIT 1";
+    protected String sqlLimit = "LIMIT";
 
     /**
      * Reflected Table Name.
@@ -130,7 +138,7 @@ public class PolarisRecord implements Model {
         /**
          * Create a starting query.
          */
-        final String startQuery = this.sqlInsertInto
+        final String startQuery = this.sqlInsert + " " + this.sqlInto
                 + " " + sqlEscapeCharacter + tableName + sqlEscapeCharacter
                 + " ";
 
@@ -205,25 +213,29 @@ public class PolarisRecord implements Model {
         /**
          * Finalize Generated Query.
          */
+
         final String generatedQuery = startQuery + fieldBuilder.toString() + " " + this.sqlValues + " " + valueBuilder.toString() + ";";
-        System.out.println(generatedQuery);
+        final String executeQuery = StringTools.clearExtraSpaces(generatedQuery);
+        LOGGER.log(Level.INFO, executeQuery);
+
         /**
          * Execute Query. the generated key will be null if no keys are
          * generated.
          */
-        Object generatedKey = con.insert(StringTools.clearExtraSpaces(generatedQuery), queryParameters.toArray());
+        Object generatedKey = con.insert(executeQuery, queryParameters.toArray());
         /**
          * Set the generated key as the ID value of this object.
          */
         if (primaryKeyData != null && generatedKey != null) {
+            Object convertedKey = null;
             try {
                 Method convert = PolarisWrapper.autoBox(primaryKeyData.getFieldType()).getMethod("valueOf", String.class);
-                Object convertedKey = convert.invoke(null, generatedKey.toString());
-                // this has no return value.
-                this.writeValue(this, primaryKeyData.getFieldName(), convertedKey);
+                convertedKey = convert.invoke(null, generatedKey.toString());
             } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
+                LOGGER.log(Level.WARNING, "Cannot Retrieve Generated Key", e);
                 return false;
             }
+            this.writeValue(this, primaryKeyData.getFieldName(), convertedKey);
         }
         return true;
     }
@@ -352,11 +364,12 @@ public class PolarisRecord implements Model {
          */
         queryParameters.add(primaryKeyData.getFieldValue());
         final String generatedQuery = startQuery + updateBuilder.toString() + whereClause;
-        System.out.println(generatedQuery);
+        final String executeQuery = StringTools.clearExtraSpaces(generatedQuery);
+        LOGGER.log(Level.INFO, executeQuery);
         /**
          * Execute Update.
          */
-        int res = con.update(StringTools.clearExtraSpaces(generatedQuery), queryParameters.toArray());
+        int res = con.update(executeQuery, queryParameters.toArray());
         /**
          * If Nothing was affected by the update.
          */
@@ -450,9 +463,10 @@ public class PolarisRecord implements Model {
                 + " = ?;";
 
         final String generatedQuery = startQuery + whereClause;
-        System.out.println(generatedQuery);
+        final String executeQuery = StringTools.clearExtraSpaces(generatedQuery);
+        LOGGER.log(Level.INFO, executeQuery);
 
-        int res = con.update(StringTools.clearExtraSpaces(generatedQuery), primaryKeyData.getFieldValue());
+        int res = con.update(executeQuery, primaryKeyData.getFieldValue());
         /**
          * If Nothing was affected by the update.
          */
@@ -507,16 +521,18 @@ public class PolarisRecord implements Model {
          */
         String whereClause = " " + this.sqlWhere + " "
                 + sqlEscapeCharacter + primaryKeyData.getColumnName() + sqlEscapeCharacter
-                + " = ? " + this.sqlLimitOne + ";";
+                + " = ? " + this.sqlLimit + " 1;";
 
         final String generatedQuery = startQuery + whereClause;
-        System.out.println(generatedQuery);
+        final String executeQuery = StringTools.clearExtraSpaces(generatedQuery);
+        LOGGER.log(Level.INFO, executeQuery);
 
         // Execute Statement
-        DataRow dr = con.fetchFirst(StringTools.clearExtraSpaces(generatedQuery), id);
+        DataRow dr = con.fetchFirst(executeQuery, id);
 
         // Check if Empty return false
         if (dr.isEmpty()) {
+            LOGGER.log(Level.INFO, "Result is empty.");
             return false;
         }
 
@@ -544,6 +560,7 @@ public class PolarisRecord implements Model {
 
         // Check if Empty return false
         if (dr.isEmpty()) {
+            LOGGER.log(Level.INFO, "Result is empty.");
             return false;
         }
 
@@ -574,6 +591,7 @@ public class PolarisRecord implements Model {
 
         // Check if Empty return false
         if (ds.isEmpty()) {
+            LOGGER.log(Level.INFO, "Result is empty.");
             return list; // return an empty list
         }
 
