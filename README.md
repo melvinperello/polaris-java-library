@@ -17,12 +17,7 @@ Absolutely Yes! You can use Polaris Library whether for your School Project, The
 > **Moving Forward With A Digital Philippines** Polaris Java Library (C) Afterschool Creatives 2018
 
 Regards,
-Jhon Melvin Nieto Perello
-4th Year DOST Scholar, BSIT, Bulacan State University, City of Malolos, Bulacan
+jhmvin
 
 
-## Polaris v1.0 - beta
-The first beta-release of Java Polaris Library
 
- - Supports Easy Java FXML Loader.
- - Supports Easy SQL Statements Execution and Connection to the Database.
