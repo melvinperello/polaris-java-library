@@ -173,6 +173,10 @@ public class FileTool {
         return file.delete();
     }
 
+    public static boolean deleteFile(String filePath) throws SecurityException, IOException {
+        return deleteFile(new File(filePath));
+    }
+
     /**
      * As with the delete(Path) method, an implementation may need to examine
      * the file to determine if the file is a directory. Consequently this
@@ -196,6 +200,11 @@ public class FileTool {
     public static boolean deleteFileIfExists(String filePath) throws NoSuchFileException,
             DirectoryNotEmptyException, IOException {
         return Files.deleteIfExists(Paths.get(filePath));
+    }
+
+    public static boolean deleteFileIfExists(File file) throws NoSuchFileException,
+            DirectoryNotEmptyException, IOException {
+        return deleteFileIfExists(file.getAbsolutePath());
     }
 
 }

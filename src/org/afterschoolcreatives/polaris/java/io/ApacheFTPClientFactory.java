@@ -32,7 +32,8 @@ import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
 
 /**
- * A Wrapper class to execute FTP related operations easily.
+ * A wrapper class for Apache Commons Net FTP API. this class is intended to
+ * create client connections easily.
  *
  * Based on Apache Commons Net 3.6 and is tested in this version only.
  *
@@ -221,7 +222,7 @@ public class ApacheFTPClientFactory {
      * @return
      * @throws IOException
      */
-    private ApacheFTPClientManager createClientManager() throws IOException {
+    public ApacheFTPClientManager createClientManager() throws IOException {
         return new ApacheFTPClientManager(this.createClient());
     }
 

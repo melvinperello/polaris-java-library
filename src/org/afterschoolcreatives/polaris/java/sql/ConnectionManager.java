@@ -74,7 +74,7 @@ public class ConnectionManager implements AutoCloseable {
             this.close();
         } catch (SQLException e) {
             // ignore error.
-            LOGGER.log(Level.SEVERE, e.toString(), e);
+            LOGGER.log(Level.WARNING, "Cannot close quietly -> {0}", e.toString());
         }
     }
 
@@ -121,7 +121,7 @@ public class ConnectionManager implements AutoCloseable {
             this.transactionStart();
         } catch (SQLException ex) {
             // ignore exception.
-            LOGGER.log(Level.SEVERE, ex.toString(), ex);
+            LOGGER.log(Level.WARNING, "Cannot start transaction quietly -> {0}", ex.toString());
             return false;
         }
         return true;
@@ -137,7 +137,7 @@ public class ConnectionManager implements AutoCloseable {
             this.transactionRollBack();
         } catch (SQLException ex) {
             // ignore exception.
-            LOGGER.log(Level.SEVERE, ex.toString(), ex);
+            LOGGER.log(Level.WARNING, "Cannot rollback quietly -> {0}", ex.toString());
             return false;
         }
         return true;
@@ -153,7 +153,7 @@ public class ConnectionManager implements AutoCloseable {
             this.transactionCommit();
         } catch (SQLException ex) {
             // ignore exception.
-            LOGGER.log(Level.SEVERE, ex.toString(), ex);
+            LOGGER.log(Level.WARNING, "Cannot commit quietly -> {0}", ex.toString());
             return false;
         }
         return true;
@@ -172,7 +172,7 @@ public class ConnectionManager implements AutoCloseable {
         try {
             return !this.connection.isClosed();
         } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, e.toString(), e);
+            LOGGER.log(Level.WARNING, "Cannot determine connection status -> {0}", e.toString());
             return false;
         }
     }
@@ -283,7 +283,7 @@ public class ConnectionManager implements AutoCloseable {
                     return null; // if no generated keys return null
                 }
             } catch (SQLException gkEx) {
-                LOGGER.log(Level.SEVERE, gkEx.toString(), gkEx);
+                LOGGER.log(Level.SEVERE, "Failed to Insert", gkEx);
                 // return null for exception in fetching keys this was caught and will not affect the insert method.
                 // this means that even the generated keys was not fetch the insert result will not be affected
                 return null;

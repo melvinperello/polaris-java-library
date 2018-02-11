@@ -232,7 +232,7 @@ public class PolarisRecord implements Model {
                 Method convert = PolarisWrapper.autoBox(primaryKeyData.getFieldType()).getMethod("valueOf", String.class);
                 convertedKey = convert.invoke(null, generatedKey.toString());
             } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
-                LOGGER.log(Level.WARNING, "Cannot Retrieve Generated Key", e);
+                LOGGER.log(Level.WARNING, "Cannot Retrieve Generated Key -> {0}", e.toString());
                 return false;
             }
             this.writeValue(this, primaryKeyData.getFieldName(), convertedKey);
