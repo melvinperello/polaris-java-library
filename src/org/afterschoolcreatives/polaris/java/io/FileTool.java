@@ -35,9 +35,8 @@ import java.nio.channels.ClosedChannelException;
 import java.nio.channels.FileChannel;
 import java.nio.channels.NonReadableChannelException;
 import java.nio.channels.NonWritableChannelException;
-import java.nio.file.DirectoryNotEmptyException;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
-import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -100,7 +99,7 @@ public class FileTool {
      *
      * @throws IOException If some other I/O error occurs
      */
-    public static boolean copyChannel(File source, File destination)
+    public static boolean copy(File source, File destination)
             throws IOException, IllegalArgumentException, NonWritableChannelException,
             ClosedChannelException, AsynchronousCloseException,
             ClosedByInterruptException, NonReadableChannelException {
@@ -135,128 +134,54 @@ public class FileTool {
     }
 
     /**
-     * Creates a directory and all its parent directories.
+     * Checks the existence of a folder. if the folder is not existing this
+     * method will attempt to create the folder and its parent directories when
+     * necessary.
      *
-     * @param directory
-     * @return true if already exist.
-     * @see FileTool#createDirectory(java.io.File)
+     * @param filePath relative or absolute path to the folder.
+     * @return true if the folder is existing or created.
+     * @throws IOException Some IO Exceptions.
+     * @throws FileAlreadyExistsException if the file is existing as a file and
+     * not a folder.
      */
-    public static boolean createDirectory(String directory) throws SecurityException {
-        return createDirectory(new File(directory));
+    public static boolean checkFolders(String filePath) throws IOException, FileAlreadyExistsException {
+        /**
+         * Check if existing.
+         */
+        if (Files.exists(Paths.get(filePath))) {
+            /**
+             * Check if the existing file is a directory.
+             */
+            if (Files.isDirectory(Paths.get(filePath))) {
+                return true;
+            }
+            // if the existing file is not a directory throw exception.
+            throw new FileAlreadyExistsException(filePath);
+        }
+        /**
+         * Attempt to create the file.
+         */
+        Path createdPath = Files.createDirectories(Paths.get(filePath));
+        /**
+         * Check existence.
+         */
+        return Files.exists(createdPath);
     }
 
     /**
-     * Creates a directory and all its parent directories.
+     * Executes check folders and ignores exception.
      *
-     * @param directory
+     * @param filePath
      * @return
+     * @see FileTool#checkFolders(java.lang.String)
      */
-    public static boolean createDirectory(File directory) throws SecurityException {
-        if (!directory.exists()) {
-            return directory.mkdirs();
-        } else {
-            return true;
+    public static boolean checkFoldersQuietly(String filePath) {
+        try {
+            return FileTool.checkFolders(filePath);
+        } catch (IOException ex) {
+            // ignore
+            return false;
         }
-    }
-
-    /**
-     * Creates a folder and all of its parent folders.
-     *
-     * @param folderPath
-     * @return true if successfully created or it is already existing.
-     * @throws IOException
-     */
-    public static boolean createFolder(String folderPath) throws IOException {
-        if (FileTool.isFileExisting(folderPath)) {
-            return true;
-        }
-        Path path = Files.createDirectories(Paths.get(folderPath));
-        return path != null;
-    }
-
-    /**
-     * Creates a folder and all of its parent folders.
-     *
-     * @param folder
-     * @return true if successfully created or it is already existing.
-     * @throws IOException
-     */
-    public static boolean createFolder(File folder) throws IOException {
-        if (FileTool.isFileExisting(folder)) {
-            return true;
-        }
-        Path path = Files.createDirectories(Paths.get(folder.toURI()));
-        return path != null;
-    }
-
-    /**
-     * As with the delete(Path) method, an implementation may need to examine
-     * the file to determine if the file is a directory. Consequently this
-     * method may not be atomic with respect to other file system operations. If
-     * the file is a symbolic link, then the symbolic link itself, not the final
-     * target of the link, is deleted. If the file is a directory then the
-     * directory must be empty. In some implementations a directory has entries
-     * for special files or links that are created when the directory is
-     * created. In such implementations a directory is considered empty when
-     * only the special entries exist. On some operating systems it may not be
-     * possible to remove a file when it is open and in use by this Java virtual
-     * machine or other programs.
-     *
-     * @param filePath Absolute or relative String path
-     * @return true if the file was deleted by this method; false if the file
-     * could not be deleted because it did not exist
-     * @throws NoSuchFileException when the file does not exists.
-     * @throws DirectoryNotEmptyException when the directory is not empty.
-     * @throws IOException Invalid Permission or IO error.
-     */
-    public static boolean deleteFileIfExists(String filePath) throws NoSuchFileException,
-            DirectoryNotEmptyException, IOException {
-        return Files.deleteIfExists(Paths.get(filePath));
-    }
-
-    /**
-     * As with the delete(Path) method, an implementation may need to examine
-     * the file to determine if the file is a directory. Consequently this
-     * method may not be atomic with respect to other file system operations. If
-     * the file is a symbolic link, then the symbolic link itself, not the final
-     * target of the link, is deleted. If the file is a directory then the
-     * directory must be empty. In some implementations a directory has entries
-     * for special files or links that are created when the directory is
-     * created. In such implementations a directory is considered empty when
-     * only the special entries exist. On some operating systems it may not be
-     * possible to remove a file when it is open and in use by this Java virtual
-     * machine or other programs.
-     *
-     * @param file File object to delete.
-     * @return true if the file was deleted by this method; false if the file
-     * could not be deleted because it did not exist
-     * @throws NoSuchFileException when the file does not exists.
-     * @throws DirectoryNotEmptyException when the directory is not empty.
-     * @throws IOException Invalid Permission or IO error.
-     */
-    public static boolean deleteFileIfExists(File file) throws NoSuchFileException,
-            DirectoryNotEmptyException, IOException {
-        return deleteFileIfExists(file.getAbsolutePath());
-    }
-
-    /**
-     * Checks if a file or directory is existing.
-     *
-     * @param file
-     * @return true if existing.
-     */
-    public static boolean isFileExisting(File file) {
-        return Files.exists(Paths.get(file.toURI()));
-    }
-
-    /**
-     * Checks if a file or directory is existing.
-     *
-     * @param filePath path.
-     * @return true if existing.
-     */
-    public static boolean isFileExisting(String filePath) {
-        return Files.exists(Paths.get(filePath));
     }
 
 }

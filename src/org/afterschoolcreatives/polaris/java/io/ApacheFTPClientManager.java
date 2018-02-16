@@ -31,6 +31,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.net.ftp.FTPClient;
@@ -48,7 +50,7 @@ import org.apache.commons.net.io.CopyStreamAdapter;
  * @author Jhon Melvin
  */
 public class ApacheFTPClientManager implements AutoCloseable {
-    
+
     private static final Logger LOGGER = Logger.getLogger(ApacheFTPClientManager.class.getName());
 
     /**
@@ -62,7 +64,7 @@ public class ApacheFTPClientManager implements AutoCloseable {
     private ApacheFTPClientManager() {
         throw new IllegalStateException("You are not allowed to do this.");
     }
-    
+
     public ApacheFTPClientManager(FTPClient ftpClient) {
         this.ftpClient = ftpClient;
         this.ftpClient.setBufferSize(4096);
@@ -179,24 +181,24 @@ public class ApacheFTPClientManager implements AutoCloseable {
              */
             if (!transferred) {
                 try {
-                    FileTool.deleteFileIfExists(outputFile);
+                    Files.deleteIfExists(Paths.get(outputFile.toURI()));
                 } catch (IOException ex) {
                     LOGGER.log(Level.WARNING, "Unable to delete temporary file -> {0}", ex.toString());
                 }
             }
-            
+
         }
         /**
          * Return the result.
          */
         return transferred;
     }
-    
+
     @Deprecated
     private boolean downloadStream(String remoteFile, File outputFile) {
         OutputStream outputStream2 = null;
         InputStream inputStream = null;
-        
+
         try {
             // APPROACH #2: using InputStream retrieveFileStream(String)
             String remoteFile2 = remoteFile;
@@ -208,12 +210,12 @@ public class ApacheFTPClientManager implements AutoCloseable {
             while ((bytesRead = inputStream.read(bytesArray)) != -1) {
                 outputStream2.write(bytesArray, 0, bytesRead);
             }
-            
+
             boolean success = this.ftpClient.completePendingCommand();
             if (success) {
                 System.out.println("File #2 has been downloaded successfully.");
             }
-            
+
         } catch (IOException ex) {
             System.out.println("Error: " + ex.getMessage());
             ex.printStackTrace();
@@ -223,9 +225,9 @@ public class ApacheFTPClientManager implements AutoCloseable {
                 inputStream.close();
             } catch (Exception e) {
             }
-            
+
         }
         return true;
     }
-    
+
 }
