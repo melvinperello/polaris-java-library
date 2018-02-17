@@ -37,7 +37,6 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.afterschoolcreatives.polaris.java.PolarisAnnotationException;
-import org.afterschoolcreatives.polaris.java.PolarisApplication;
 import org.afterschoolcreatives.polaris.java.PolarisException;
 import org.afterschoolcreatives.polaris.java.sql.ConnectionManager;
 import org.afterschoolcreatives.polaris.java.sql.DataRow;

@@ -133,6 +133,15 @@ public class FileTool {
         }
     }
 
+    public static boolean copyQuietly(File source, File destination) {
+        try {
+            return FileTool.copy(source, destination);
+        } catch (IOException | IllegalArgumentException | NonWritableChannelException | NonReadableChannelException ex) {
+            // ignore
+            return false;
+        }
+    }
+
     /**
      * Checks the existence of a folder. if the folder is not existing this
      * method will attempt to create the folder and its parent directories when

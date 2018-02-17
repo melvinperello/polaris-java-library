@@ -37,6 +37,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.io.CopyStreamAdapter;
+import org.apache.commons.net.io.CopyStreamEvent;
 
 /**
  * A wrapper class for Apache Commons Net FTP API. this class is intended to
@@ -67,6 +68,7 @@ public class ApacheFTPClientManager implements AutoCloseable {
 
     public ApacheFTPClientManager(FTPClient ftpClient) {
         this.ftpClient = ftpClient;
+        // default buffer
         this.ftpClient.setBufferSize(4096);
     }
 
@@ -115,12 +117,15 @@ public class ApacheFTPClientManager implements AutoCloseable {
         this.ftpClient.setBufferSize(bufferSize);
     }
 
+    private TransferListener onTransferListener;
+
     /**
      * Set Transfer Listener. cannot listen when transferring using streams.
      *
      * @param listener
      */
-    public void setTransferListener(TransferListener listener) {
+    public void setOnTransferListener(TransferListener listener) {
+        this.onTransferListener = listener;
         this.ftpClient.setCopyStreamListener(new CopyStreamAdapter() {
             @Override
             public void bytesTransferred(long totalBytesTransferred, int bytesTransferred, long streamSize) {
@@ -194,40 +199,84 @@ public class ApacheFTPClientManager implements AutoCloseable {
         return transferred;
     }
 
-    @Deprecated
-    private boolean downloadStream(String remoteFile, File outputFile) {
-        OutputStream outputStream2 = null;
+    /**
+     * Download a file from the ftp server using STREAMS. in case of failure of
+     * transfer the temporary file is deleted.
+     *
+     * @param remoteFile
+     * @param outputFile
+     * @return
+     * @throws IOException
+     */
+    public boolean downloadStream(String remoteFile, File outputFile) throws IOException {
+
+        int bufferSize = this.ftpClient.getBufferSize();
+        long bytesWritten = 0;
+        boolean transferred = false;
+        /**
+         * Initialize Streams.
+         */
+        OutputStream outputFileStream = null;
         InputStream inputStream = null;
 
         try {
-            // APPROACH #2: using InputStream retrieveFileStream(String)
-            String remoteFile2 = remoteFile;
-            File downloadFile2 = outputFile;
-            outputStream2 = new BufferedOutputStream(new FileOutputStream(downloadFile2));
-            inputStream = this.ftpClient.retrieveFileStream(remoteFile2);
-            byte[] bytesArray = new byte[4096];
-            int bytesRead = -1;
+            /**
+             * Local output stream where to write data.
+             */
+            outputFileStream = new BufferedOutputStream(new FileOutputStream(outputFile));
+            /**
+             * Remote input stream where to read data.
+             */
+            inputStream = this.ftpClient.retrieveFileStream(remoteFile);
+            /**
+             * Individual byte transfer and size.
+             */
+            byte[] bytesArray = new byte[bufferSize];
+
+            int bytesRead;
+
             while ((bytesRead = inputStream.read(bytesArray)) != -1) {
-                outputStream2.write(bytesArray, 0, bytesRead);
+                outputFileStream.write(bytesArray, 0, bytesRead);
+                bytesWritten += bytesRead;
+                this.onTransferListener.listen(bytesWritten, bytesRead, CopyStreamEvent.UNKNOWN_STREAM_SIZE);
             }
-
-            boolean success = this.ftpClient.completePendingCommand();
-            if (success) {
-                System.out.println("File #2 has been downloaded successfully.");
-            }
-
-        } catch (IOException ex) {
-            System.out.println("Error: " + ex.getMessage());
-            ex.printStackTrace();
+            transferred = this.ftpClient.completePendingCommand();
         } finally {
-            try {
-                outputStream2.close();
-                inputStream.close();
-            } catch (Exception e) {
+            /**
+             * Close output stream.
+             */
+            if (outputFileStream != null) {
+                try {
+                    outputFileStream.close();
+                } catch (IOException e) {
+                    // ignore
+                }
+            }
+
+            /**
+             * Close input stream.
+             */
+            if (inputStream != null) {
+                try {
+                    inputStream.close();
+                } catch (IOException e) {
+                    // ignore
+                }
+            }
+
+            /**
+             * If transferred was failed delete the downloaded file.
+             */
+            if (!transferred) {
+                try {
+                    Files.deleteIfExists(Paths.get(outputFile.toURI()));
+                } catch (IOException ex) {
+                    LOGGER.log(Level.WARNING, "Unable to delete temporary file -> {0}", ex.toString());
+                }
             }
 
         }
-        return true;
+        return transferred;
     }
 
 }
