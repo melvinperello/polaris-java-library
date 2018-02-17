@@ -27,6 +27,7 @@ package org.afterschoolcreatives.polaris.java.io;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -35,6 +36,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.io.CopyStreamAdapter;
 import org.apache.commons.net.io.CopyStreamEvent;
@@ -120,7 +122,7 @@ public class ApacheFTPClientManager implements AutoCloseable {
     private TransferListener onTransferListener;
 
     /**
-     * Set Transfer Listener. cannot listen when transferring using streams.
+     * Set Transfer Listener.
      *
      * @param listener
      */
@@ -155,18 +157,18 @@ public class ApacheFTPClientManager implements AutoCloseable {
      * temporary file is deleted.
      *
      * @param remoteFile
-     * @param outputFile
+     * @param downloadFile
      * @return
      * @throws IOException
      */
-    public boolean download(String remoteFile, File outputFile) throws IOException {
+    public boolean download(String remoteFile, String downloadFile) throws IOException {
         /**
          * Holds the downloaded file.
          */
         OutputStream outputFileBinary = null;
         boolean transferred = false;
         try {
-            outputFileBinary = new BufferedOutputStream(new FileOutputStream(outputFile.getAbsolutePath()));
+            outputFileBinary = new BufferedOutputStream(new FileOutputStream(downloadFile));
             transferred = ftpClient.retrieveFile(remoteFile, outputFileBinary);
         } finally {
 
@@ -186,7 +188,7 @@ public class ApacheFTPClientManager implements AutoCloseable {
              */
             if (!transferred) {
                 try {
-                    Files.deleteIfExists(Paths.get(outputFile.toURI()));
+                    Files.deleteIfExists(Paths.get(downloadFile));
                 } catch (IOException ex) {
                     LOGGER.log(Level.WARNING, "Unable to delete temporary file -> {0}", ex.toString());
                 }
@@ -204,11 +206,11 @@ public class ApacheFTPClientManager implements AutoCloseable {
      * transfer the temporary file is deleted.
      *
      * @param remoteFile
-     * @param outputFile
+     * @param downloadFile
      * @return
      * @throws IOException
      */
-    public boolean downloadStream(String remoteFile, File outputFile) throws IOException {
+    public boolean downloadStream(String remoteFile, String downloadFile) throws IOException {
 
         int bufferSize = this.ftpClient.getBufferSize();
         long bytesWritten = 0;
@@ -223,7 +225,7 @@ public class ApacheFTPClientManager implements AutoCloseable {
             /**
              * Local output stream where to write data.
              */
-            outputFileStream = new BufferedOutputStream(new FileOutputStream(outputFile));
+            outputFileStream = new BufferedOutputStream(new FileOutputStream(downloadFile));
             /**
              * Remote input stream where to read data.
              */
@@ -238,6 +240,9 @@ public class ApacheFTPClientManager implements AutoCloseable {
             while ((bytesRead = inputStream.read(bytesArray)) != -1) {
                 outputFileStream.write(bytesArray, 0, bytesRead);
                 bytesWritten += bytesRead;
+                /**
+                 * Invoke Listener for streams.
+                 */
                 this.onTransferListener.listen(bytesWritten, bytesRead, CopyStreamEvent.UNKNOWN_STREAM_SIZE);
             }
             transferred = this.ftpClient.completePendingCommand();
@@ -250,6 +255,7 @@ public class ApacheFTPClientManager implements AutoCloseable {
                     outputFileStream.close();
                 } catch (IOException e) {
                     // ignore
+                    LOGGER.log(Level.WARNING, "Unable to close the output file stream of the downloaded file the lock may not be released -> {0}", e.toString());
                 }
             }
 
@@ -261,6 +267,7 @@ public class ApacheFTPClientManager implements AutoCloseable {
                     inputStream.close();
                 } catch (IOException e) {
                     // ignore
+                    LOGGER.log(Level.WARNING, "Unable to close the input file stream of the downloaded file the lock may not be released -> {0}", e.toString());
                 }
             }
 
@@ -269,7 +276,7 @@ public class ApacheFTPClientManager implements AutoCloseable {
              */
             if (!transferred) {
                 try {
-                    Files.deleteIfExists(Paths.get(outputFile.toURI()));
+                    Files.deleteIfExists(Paths.get(downloadFile));
                 } catch (IOException ex) {
                     LOGGER.log(Level.WARNING, "Unable to delete temporary file -> {0}", ex.toString());
                 }
@@ -277,6 +284,116 @@ public class ApacheFTPClientManager implements AutoCloseable {
 
         }
         return transferred;
+    }
+
+    public boolean upload(String localFile, String uploadFile) throws IOException {
+        /**
+         * Local File Input Stream.
+         */
+        InputStream inputStream = null;
+        boolean uploaded = false;
+        try {
+            inputStream = new FileInputStream(localFile);
+
+            uploaded = this.ftpClient.storeFile(uploadFile, inputStream);
+
+            return uploaded;
+        } finally {
+            /**
+             * Close the stream.
+             */
+            if (inputStream != null) {
+                try {
+                    inputStream.close();
+                } catch (IOException e) {
+                    // ignore
+                    LOGGER.log(Level.WARNING, "Unable to close the input stream of the uploaded file the lock may not be released -> {0}", e.toString());
+                }
+            }
+            /**
+             * Add some mechanism to delete the file if the upload was not
+             * successful.
+             */
+            if (!uploaded) {
+                // if upload fail delete file in ftp if posible.
+                LOGGER.log(Level.WARNING, "Failed to upload file. No Temporary File Cleanup Mechanism Found.");
+            }
+        }
+
+    }
+
+    public boolean uploadStream(String localFile, String uploadFile) throws IOException {
+
+        int totalUploadedSize = 0;
+        InputStream localFileInputStream = null;
+        OutputStream remoteFileOutputStream = null;
+        boolean uploaded = false;
+        try {
+            /**
+             * Open input stream.
+             */
+            localFileInputStream = new FileInputStream(localFile);
+            /**
+             * Open FTP output stream.
+             */
+            remoteFileOutputStream = this.ftpClient.storeFileStream(uploadFile);
+
+            byte[] bytesIn = new byte[this.ftpClient.getBufferSize()];
+
+            int read;
+
+            while ((read = localFileInputStream.read(bytesIn)) != -1) {
+                remoteFileOutputStream.write(bytesIn, 0, read);
+                /**
+                 * Add read count.
+                 */
+                totalUploadedSize += read;
+                /**
+                 * Invoke listener.
+                 */
+                this.onTransferListener.listen(totalUploadedSize, read, CopyStreamEvent.UNKNOWN_STREAM_SIZE);
+            }
+            localFileInputStream.close();
+            remoteFileOutputStream.close();
+
+            uploaded = ftpClient.completePendingCommand();
+
+            return uploaded;
+        } finally {
+            /**
+             * Close connection output stream.
+             */
+            if (remoteFileOutputStream != null) {
+                try {
+                    remoteFileOutputStream.close();
+                } catch (IOException e) {
+                    //ignore
+                    LOGGER.log(Level.WARNING, "Unable to close the remote file output stream of the downloaded file the lock may not be released -> {0}", e.toString());
+                }
+            }
+
+            /**
+             * Close local stream.
+             */
+            if (localFileInputStream != null) {
+                try {
+                    localFileInputStream.close();
+                } catch (IOException e) {
+                    //ignore
+                    LOGGER.log(Level.WARNING, "Unable to close the local file input stream of the downloaded file the lock may not be released -> {0}", e.toString());
+                }
+            }
+
+            /**
+             * Add some mechanism to delete the file if the upload was not
+             * successful.
+             */
+            if (!uploaded) {
+                // if upload fail delete file in ftp if posible.
+                LOGGER.log(Level.WARNING, "Failed to upload file. No Temporary File Cleanup Mechanism Found.");
+            }
+        }
+
     }
 
 }

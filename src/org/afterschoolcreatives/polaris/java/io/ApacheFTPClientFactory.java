@@ -51,11 +51,11 @@ public class ApacheFTPClientFactory {
     private String username;
     private String password;
     private boolean localPassiveMode;
+    private boolean extendedPassiveMode;
 
     // modes
     private int fileTransferMode;
     private int fileType;
-    private int fileFormat;
     private boolean nagling;
 
     /**
@@ -63,9 +63,9 @@ public class ApacheFTPClientFactory {
      */
     public ApacheFTPClientFactory() {
         this.localPassiveMode = true;
+        this.extendedPassiveMode = true;
         this.fileTransferMode = FTP.STREAM_TRANSFER_MODE;
         this.fileType = FTP.BINARY_FILE_TYPE;
-        this.fileFormat = FTP.BINARY_FILE_TYPE;
         this.nagling = false;
     }
 
@@ -127,6 +127,20 @@ public class ApacheFTPClientFactory {
         this.localPassiveMode = passiveMode;
     }
 
+    /**
+     * Set whether to use EPSV with IPv4. Might be worth enabling in some
+     * circumstances. For example, when using IPv4 with NAT it may work with
+     * some rare configurations. E.g. if FTP server has a static PASV address
+     * (external network) and the client is coming from another internal
+     * network. In that case the data connection after PASV command would fail,
+     * while EPSV would make the client succeed by taking just the port.
+     *
+     * @param epsv true or false;
+     */
+    public void setExtendedPassiveModeIPv4(boolean epsv) {
+        this.extendedPassiveMode = epsv;
+    }
+
     public void setServer(String server) {
         this.server = server;
     }
@@ -151,10 +165,6 @@ public class ApacheFTPClientFactory {
         this.fileType = fileType;
     }
 
-    public void setFileFormat(int fileFormat) {
-        this.fileFormat = fileFormat;
-    }
-
     /**
      * By default, TCP connections wait a small fixed interval before actually
      * sending data, in order to permit small packets to be combined. This
@@ -175,7 +185,8 @@ public class ApacheFTPClientFactory {
     }
 
     /**
-     * Creates a FTP Client Connection.
+     * Creates a FTP Client Connection. Overrides any default file type with
+     * Binary File Type.
      *
      * @return
      * @throws IOException
@@ -197,13 +208,14 @@ public class ApacheFTPClientFactory {
             /**
              * Extended Passive mode with IPv4
              */
-            ftpClient.setUseEPSVwithIPv4(true);
             LOGGER.log(Level.INFO, "[Enter Local Passive Mode >> {0}] -> {1}", new Object[]{ftpClient.getReplyCode(), ftpClient.getReplyString()});
         }
+
+        ftpClient.setUseEPSVwithIPv4(this.extendedPassiveMode);
         /**
          * Binary File Type.
          */
-        ftpClient.setFileType(this.fileType, this.fileFormat);
+        ftpClient.setFileType(this.fileType);
         LOGGER.log(Level.INFO, "[File Type >> {0}] -> {1}", new Object[]{ftpClient.getReplyCode(), ftpClient.getReplyString()});
         ftpClient.setFileTransferMode(this.fileTransferMode);
         LOGGER.log(Level.INFO, "[Transfer Mode >> {0}] -> {1}", new Object[]{ftpClient.getReplyCode(), ftpClient.getReplyString()});
