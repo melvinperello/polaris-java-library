@@ -38,6 +38,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
+import org.apache.commons.net.ftp.FTPReply;
 import org.apache.commons.net.io.CopyStreamAdapter;
 import org.apache.commons.net.io.CopyStreamEvent;
 
@@ -286,6 +287,14 @@ public class ApacheFTPClientManager implements AutoCloseable {
         return transferred;
     }
 
+    /**
+     * Uploads a file to the FTP server.
+     *
+     * @param localFile
+     * @param uploadFile
+     * @return
+     * @throws IOException
+     */
     public boolean upload(String localFile, String uploadFile) throws IOException {
         /**
          * Local File Input Stream.
@@ -322,6 +331,14 @@ public class ApacheFTPClientManager implements AutoCloseable {
 
     }
 
+    /**
+     * Uploads a file to the FTP server using Streams.
+     *
+     * @param localFile
+     * @param uploadFile
+     * @return
+     * @throws IOException
+     */
     public boolean uploadStream(String localFile, String uploadFile) throws IOException {
 
         int totalUploadedSize = 0;
