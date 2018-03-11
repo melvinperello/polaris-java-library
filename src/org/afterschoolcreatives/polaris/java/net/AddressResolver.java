@@ -27,12 +27,14 @@ package org.afterschoolcreatives.polaris.java.net;
 
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.InterfaceAddress;
 import java.net.NetworkInterface;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.apache.commons.net.util.SubnetUtils;
 
 /**
  *
@@ -57,31 +59,95 @@ public class AddressResolver {
         threadManager.resolveAddresses();
     }
 
-    public static void main(String[] args) {
-        try {
-            String localHostName = InetAddress.getLocalHost().getHostName();
-            Enumeration e = NetworkInterface.getNetworkInterfaces();
-            while (e.hasMoreElements()) {
-                NetworkInterface n = (NetworkInterface) e.nextElement();
-                Enumeration ee = n.getInetAddresses();
-                while (ee.hasMoreElements()) {
-                    InetAddress i = (InetAddress) ee.nextElement();
-                    if (i.getHostName().equals(localHostName)) {
-                        if (i.getHostAddress().contains(":")) {
+    public static class AddressInfo {
 
-                        } else {
-                            System.out.println(i.getHostName() + " -> " + i.getHostAddress());
-                        }
+        private String hostName;
+        private String address;
+        private String prefix;
 
-                    }
-
-                }
-            }
-        } catch (Exception e) {
+        public AddressInfo() {
+            this.hostName = "";
+            this.address = "";
+            this.prefix = "";
         }
 
-//        AddressResolver ar = new AddressResolver();
-//        ar.search();
+        public String getHostName() {
+            return hostName;
+        }
+
+        public void setHostName(String hostName) {
+            this.hostName = hostName;
+        }
+
+        public String getAddress() {
+            return address;
+        }
+
+        public void setAddress(String address) {
+            this.address = address;
+        }
+
+        public String getPrefix() {
+            return prefix;
+        }
+
+        public void setPrefix(String prefix) {
+            this.prefix = prefix;
+        }
+
+        @Override
+        public String toString() {
+            return this.hostName + "\t" + this.address + "\t" + this.prefix;
+        }
+
+    }
+
+    public List<AddressInfo> getLocalIPv4Address() {
+        final ArrayList<AddressInfo> list = new ArrayList<>();
+        try {
+            //------------------------------------------------------------------
+            final Enumeration e = NetworkInterface.getNetworkInterfaces();
+            //------------------------------------------------------------------
+            while (e.hasMoreElements()) {
+                //
+                NetworkInterface n = (NetworkInterface) e.nextElement();
+                if (n.isUp() && (!n.isLoopback())) {
+                    for (InterfaceAddress ia : n.getInterfaceAddresses()) {
+                        InetAddress inet = ia.getAddress();
+                        String hostAddress = inet.getHostAddress();
+                        // ipv6 marker
+                        if (hostAddress.contains(":")) {
+                            continue;
+                        }
+                        AddressInfo ai = new AddressInfo();
+                        ai.setAddress(hostAddress);
+                        ai.setPrefix(Short.valueOf(ia.getNetworkPrefixLength()).toString());
+                        ai.setHostName(inet.getCanonicalHostName());
+                        list.add(ai);
+                    }
+                }
+            }
+            //------------------------------------------------------------------
+        } catch (Exception e) {
+            // do nothing.
+        }
+        return list;
+    }
+
+    public static void main(String[] args) {
+        AddressResolver ar = new AddressResolver();
+        //ar.search();
+//        ar.getLocalIPv4Address().forEach(action -> {
+//            System.out.println(action.toString());
+//        });
+
+        String subnet = "192.168.254.254/25";
+        SubnetUtils utils = new SubnetUtils(subnet);
+        for (String arg : utils.getInfo().getAllAddresses()) {
+            System.out.println(arg);
+        }
+        
+        utils.getInfo().isInRange("192.168.254.129");
     }
 
     //--------------------------------------------------------------------------
