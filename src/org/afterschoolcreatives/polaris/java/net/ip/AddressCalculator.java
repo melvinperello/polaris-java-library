@@ -23,12 +23,12 @@
  * SOFTWARE.
  *
  */
-package org.afterschoolcreatives.polaris.java.net;
+package org.afterschoolcreatives.polaris.java.net.ip;
 
 /**
  *
  * @author Jhon Melvin
  */
-public class SubnetAddressRange {
+public class AddressCalculator {
     
 }

@@ -23,7 +23,7 @@
  * SOFTWARE.
  *
  */
-package org.afterschoolcreatives.polaris.java.net;
+package org.afterschoolcreatives.polaris.java.net.ip;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -34,13 +34,12 @@ import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
-import org.apache.commons.net.util.SubnetUtils;
 
 /**
  *
  * @author Jhon Melvin
  */
-public class AddressResolver {
+public class ARPExplorer {
 
     private int timeout = 2500;
     private int maxConcurrentSearch = 50;
@@ -134,22 +133,30 @@ public class AddressResolver {
         return list;
     }
 
-    public static void main(String[] args) {
-        AddressResolver ar = new AddressResolver();
-        //ar.search();
-//        ar.getLocalIPv4Address().forEach(action -> {
-//            System.out.println(action.toString());
-//        });
-
-        String subnet = "192.168.254.254/25";
-        SubnetUtils utils = new SubnetUtils(subnet);
-        for (String arg : utils.getInfo().getAllAddresses()) {
-            System.out.println(arg);
-        }
-        
-        utils.getInfo().isInRange("192.168.254.129");
-    }
-
+//    public static void main(String[] args) throws SocketException {
+//        ARPExplorer ar = new ARPExplorer();
+//        //ar.search();
+////        ar.getLocalIPv4Address().forEach(action -> {
+////            System.out.println(action.toString());
+////        });
+//
+//        //        String subnet = "192.168.254.254/25";
+////        SubnetUtils utils = new SubnetUtils(subnet);
+////        for (String arg : utils.getInfo().getAllAddresses()) {
+////            System.out.println(arg);
+////        }
+////        
+////        utils.getInfo().isInRange("192.168.254.129");
+//        try {
+//            InetAddress[] host = InetAddress.getAllByName("Melvin");
+//            for (InetAddress addr : host) {
+//                NetworkInterface ni = NetworkInterface.getByInetAddress(addr);
+//                System.out.println(ni.getName());
+//            }
+//        } catch (UnknownHostException ex) {
+//            ex.printStackTrace();
+//        }
+//    }
     //--------------------------------------------------------------------------
     /**
      * Manages the Search Host Threads.
