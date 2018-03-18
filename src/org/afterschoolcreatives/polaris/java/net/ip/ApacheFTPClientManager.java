@@ -23,7 +23,7 @@
  * SOFTWARE.
  *
  */
-package org.afterschoolcreatives.polaris.java.io;
+package org.afterschoolcreatives.polaris.java.net.ip;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
