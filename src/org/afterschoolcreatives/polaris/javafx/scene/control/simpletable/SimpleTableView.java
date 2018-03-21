@@ -35,6 +35,7 @@ import javafx.scene.layout.VBox;
  *
  * @author Jhon Melvin
  */
+@Deprecated
 public class SimpleTableView extends ScrollPane {
 
     private VBox mainContainer;

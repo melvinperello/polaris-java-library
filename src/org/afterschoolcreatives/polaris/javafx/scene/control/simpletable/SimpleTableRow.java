@@ -32,6 +32,7 @@ import javafx.scene.layout.VBox;
 
 import java.util.HashMap;
 
+@Deprecated
 public class SimpleTableRow extends VBox {
 
     /**

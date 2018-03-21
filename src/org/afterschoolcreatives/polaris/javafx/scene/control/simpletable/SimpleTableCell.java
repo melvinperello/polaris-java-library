@@ -42,6 +42,7 @@ import javafx.scene.layout.Priority;
  * <li>Styling may be done using the css styling global class</li>
  * </ul>
  */
+@Deprecated
 public class SimpleTableCell extends HBox {
 
     /**

@@ -36,6 +36,7 @@ import javafx.scene.layout.VBox;
  *
  * @author Jhon Melvin
  */
+@Deprecated
 public class SimpleTable extends VBox {
 
     private final String tableCss = "simple-table";

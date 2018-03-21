@@ -262,7 +262,7 @@ public class PolarisRecord implements Model {
      * @return true if there are records affected false if none.
      * @throws SQLException if failed to execute.
      */
-    public boolean updateMaster(ConnectionManager con, boolean includeNull) throws SQLException {
+    private boolean updateMaster(ConnectionManager con, boolean includeNull) throws SQLException {
         /**
          * Reflection.
          */
