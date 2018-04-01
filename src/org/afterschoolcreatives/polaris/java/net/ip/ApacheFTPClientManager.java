@@ -84,6 +84,24 @@ public class ApacheFTPClientManager implements AutoCloseable {
     }
 
     /**
+     * Aborts any transfer activity in this connection.
+     *
+     * @throws IOException
+     */
+    public void abort() throws IOException {
+        this.ftpClient.abort();
+    }
+
+    /**
+     * Gets this manager FTP Connection Client.
+     *
+     * @return
+     */
+    public FTPClient getFtpClient() {
+        return ftpClient;
+    }
+
+    /**
      * logout and disconnects this client's connection.
      *
      * @throws IOException
