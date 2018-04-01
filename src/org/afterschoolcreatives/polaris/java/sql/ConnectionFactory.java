@@ -194,6 +194,14 @@ public class ConnectionFactory {
         return Arrays.copyOf(this.password, this.password.length);
     }
 
+    protected Driver getConnectionDriver() {
+        return connectionDriver;
+    }
+
+    protected String getSQLiteURL() {
+        return SQLiteURL;
+    }
+
     //--------------------------------------------------------------------------
     // Class Methods
     //--------------------------------------------------------------------------
@@ -202,7 +210,7 @@ public class ConnectionFactory {
      *
      * @return the URL String.
      */
-    private String createUrl() {
+    protected String createUrl() {
         if (this.connectionDriver == null) {
             throw new PolarisException("The Connection Driver was not assigned.");
         }
