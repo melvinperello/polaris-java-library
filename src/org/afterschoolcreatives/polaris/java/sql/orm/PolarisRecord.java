@@ -248,8 +248,21 @@ public class PolarisRecord implements Model {
     private void writeValue(Object object, String fieldName, Object value) {
         try {
             new PropertyDescriptor(fieldName, object.getClass()).getWriteMethod().invoke(object, value);
-        } catch (IntrospectionException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
+        } catch (IntrospectionException | IllegalAccessException | InvocationTargetException ex) {
             throw new PolarisException("Cannot Map Values to this Model: Error Writing on field -> " + fieldName, ex);
+        } catch (IllegalArgumentException parameterException) {
+            String dataType = "Unknown";
+            String className = "Unknown";
+            if (value != null) {
+                dataType = value.getClass().getName();
+            }
+            if (object != null) {
+                className = object.getClass().getName();
+            }
+            throw new PolarisException("Write Error: Invalid Arguement -> [ Class: "
+                    + className + " , Field: "
+                    + fieldName + " , Type: " + dataType + " ]",
+                    parameterException);
         }
     }
 
