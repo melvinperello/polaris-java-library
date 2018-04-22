@@ -47,7 +47,7 @@ public interface Model {
     boolean insert(ConnectionManager con) throws SQLException;
 
     /**
-     * updates a record.
+     * Updates a model and ignore changes for null values.
      *
      * @param con
      * @return
@@ -56,7 +56,7 @@ public interface Model {
     boolean update(ConnectionManager con) throws SQLException;
 
     /**
-     * updates a record.
+     * Updates a model and accepts changes including null values.
      *
      * @param con
      * @return
@@ -87,11 +87,11 @@ public interface Model {
      * Find an instance using an SQL statement. the result will be truncated
      * only to the first result. A LIMIT 1 or similar method should be added. to
      * optimize the query. even without the LIMIT constraint only the first
-     * result will be mapped.
+     * result will be mapped to the caller instance.
      *
      * @param con
      * @param builder
-     * @return
+     * @return true if there is a result, false otherwise.
      * @throws java.sql.SQLException
      */
     boolean findQuery(ConnectionManager con, QueryBuilder builder) throws SQLException;
@@ -103,7 +103,7 @@ public interface Model {
      * @param <T>
      * @param con
      * @param builder
-     * @return
+     * @return a list of results for matching records.
      * @throws java.sql.SQLException
      */
     <T> List<T> findMany(ConnectionManager con, QueryBuilder builder) throws SQLException;

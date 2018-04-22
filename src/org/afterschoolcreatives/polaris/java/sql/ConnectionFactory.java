@@ -25,7 +25,7 @@
  */
 package org.afterschoolcreatives.polaris.java.sql;
 
-import org.afterschoolcreatives.polaris.java.PolarisException;
+import org.afterschoolcreatives.polaris.java.PolarisRuntimeException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -212,7 +212,7 @@ public class ConnectionFactory {
      */
     protected String createUrl() {
         if (this.connectionDriver == null) {
-            throw new PolarisException("The Connection Driver was not assigned.");
+            throw new PolarisRuntimeException("The Connection Driver was not assigned.");
         }
         switch (this.connectionDriver) {
             case MariaDB:
@@ -222,7 +222,7 @@ public class ConnectionFactory {
             case SQLite:
                 return "jdbc:sqlite:" + this.SQLiteURL;
             default:
-                throw new PolarisException("No Default JDBC URL. Please Assign a Driver");
+                throw new PolarisRuntimeException("No Default JDBC URL. Please Assign a Driver");
         }
     }
 

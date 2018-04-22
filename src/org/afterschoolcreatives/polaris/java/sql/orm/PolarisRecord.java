@@ -36,8 +36,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.afterschoolcreatives.polaris.java.PolarisAnnotationException;
-import org.afterschoolcreatives.polaris.java.PolarisException;
+import org.afterschoolcreatives.polaris.java.exceptions.PolarisAnnotationException;
+import org.afterschoolcreatives.polaris.java.PolarisRuntimeException;
+import org.afterschoolcreatives.polaris.java.exceptions.PrimaryKeyAnnotationException;
 import org.afterschoolcreatives.polaris.java.sql.ConnectionManager;
 import org.afterschoolcreatives.polaris.java.sql.DataRow;
 import org.afterschoolcreatives.polaris.java.sql.DataSet;
@@ -92,7 +93,7 @@ public class PolarisRecord implements Model {
     /**
      * Uses reflection to introspect the model.
      */
-    private void reflect() {
+    private void reflect() throws PolarisAnnotationException {
         /**
          * Use Reflections to get the field data.
          */
@@ -249,7 +250,7 @@ public class PolarisRecord implements Model {
         try {
             new PropertyDescriptor(fieldName, object.getClass()).getWriteMethod().invoke(object, value);
         } catch (IntrospectionException | IllegalAccessException | InvocationTargetException ex) {
-            throw new PolarisException("Cannot Map Values to this Model: Error Writing on field -> " + fieldName, ex);
+            throw new PolarisRuntimeException("Cannot Map Values to this Model: Error Writing on field -> " + fieldName, ex);
         } catch (IllegalArgumentException parameterException) {
             String dataType = "Unknown";
             String className = "Unknown";
@@ -259,7 +260,7 @@ public class PolarisRecord implements Model {
             if (object != null) {
                 className = object.getClass().getName();
             }
-            throw new PolarisException("Write Error: Invalid Arguement -> [ Class: "
+            throw new PolarisRuntimeException("Write Error: Invalid Arguement -> [ Class: "
                     + className + " , Field: "
                     + fieldName + " , Type: " + dataType + " ]",
                     parameterException);
@@ -358,11 +359,11 @@ public class PolarisRecord implements Model {
          * Create Where Clause if has primary key.
          */
         if (primaryKeyData == null) {
-            throw new PolarisAnnotationException("Cannot Execute Update: No Field is Annotated as Primary Key.");
+            throw new PrimaryKeyAnnotationException("Cannot update model no field is assigned as primary key or annotated with @PrimaryKey");
         }
 
         if (primaryKeyData.getFieldValue() == null) {
-            throw new PolarisAnnotationException("Cannot Execute Update: Primary Key Value is Null");
+            throw new PrimaryKeyAnnotationException("Cannot update model when primary key value is null");
         }
         /**
          * Created Where Clause.
@@ -620,7 +621,7 @@ public class PolarisRecord implements Model {
             try {
                 row = (T) this.getClass().newInstance();
             } catch (InstantiationException | IllegalAccessException ex) {
-                throw new PolarisException("Cannot Create Model Instance, is there a public and default constructor ?", ex);
+                throw new PolarisRuntimeException("Cannot Create Model Instance, is there a public and default constructor ?", ex);
             }
 
             /**

@@ -25,15 +25,24 @@
  */
 package org.afterschoolcreatives.polaris.javafx.fxml;
 
-import org.afterschoolcreatives.polaris.java.PolarisException;
+import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.file.Paths;
 import java.util.ResourceBundle;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
+import javafx.stage.Window;
+import org.afterschoolcreatives.polaris.java.exceptions.PolarisFxLoadingException;
+import org.afterschoolcreatives.polaris.java.exceptions.PolarisNoSceneException;
+import org.afterschoolcreatives.polaris.java.exceptions.PolarisNoWindowException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -41,7 +50,33 @@ import javafx.stage.Stage;
  */
 public abstract class PolarisFxController implements Initializable {
 
+    private final static Logger LOGGER = LoggerFactory.getLogger(PolarisFxController.class);
+
+    public PolarisFxController() {
+        this.root = null;
+        this.externalLocation = null;
+    }
+
     private Parent root;
+
+    /**
+     * External Location outside the class path that represents this
+     * controller's FXML.
+     */
+    private String externalLocation;
+
+    /**
+     * Set the External Location outside the class path that represents this
+     * controller's FXML directory.
+     *
+     * Example: Polaris.FXML is location at view/FXMLS/Polaris.FXML. you should
+     * only put "view/FXMLS"
+     *
+     * @param externalLocation external String Location outside SRC.
+     */
+    public final void setExternalLocation(String externalLocation) {
+        this.externalLocation = externalLocation + File.separator + this.getClass().getSimpleName() + ".fxml";
+    }
 
     /**
      * Method from initializable. implementation for sub classes. this method is
@@ -69,7 +104,9 @@ public abstract class PolarisFxController implements Initializable {
      * @return
      */
     private String getFxmlPath() {
-        return "/" + this.getClass().getName().replace('.', '/') + ".fxml";
+        String path = "/" + this.getClass().getName().replace('.', '/') + ".fxml";
+        LOGGER.debug("FXML Path: {}", path);
+        return path;
     }
 
     /**
@@ -78,17 +115,37 @@ public abstract class PolarisFxController implements Initializable {
      * @param <T>
      * @return
      */
-    @SuppressWarnings("UI_INHERITANCE_UNSAFE_GETRESOURCE")
     public <T> T load() {
-        try {
-            FXMLLoader fxmlLoader = new FXMLLoader(this.getClass().getResource(this.getFxmlPath()));
-            fxmlLoader.setController(this);
-            this.root = fxmlLoader.load();
-            this.setup();
-            return (T) this.root;
-        } catch (IOException ex) {
-            throw new PolarisException("Cannot load the FXML.", ex);
+        // get URL
+        URL fxmlURL = PolarisFxController.class.getResource(this.getFxmlPath());
+        //----------------------------------------------------------------------
+        if (this.externalLocation != null) {
+            try {
+                URL extURL = Paths.get(externalLocation).toUri().toURL();
+                fxmlURL = extURL;
+                LOGGER.debug("Using external FXML Location: {}", extURL.getFile());
+            } catch (MalformedURLException e) {
+                LOGGER.error("External FXML Location was set but was invalid... defaulting to internal location.", e);
+            }
         }
+        //----------------------------------------------------------------------
+        // Create FXML Loader.
+        FXMLLoader fxmlLoader = new FXMLLoader(fxmlURL);
+        // Set this controller
+        fxmlLoader.setController(this);
+        try {
+            // load the FXML
+            this.root = fxmlLoader.load();
+        } catch (IOException ex) {
+            throw new PolarisFxLoadingException("Cannot load FXML [IO EXCEPTION]", ex);
+        } catch (IllegalStateException ie) {
+            throw new PolarisFxLoadingException("Cannot load FXML [Illegal State Exception]", ie);
+        }
+
+        // call setup
+        this.setup();
+        // return root.
+        return (T) this.root;
     }
 
     /**
@@ -111,15 +168,34 @@ public abstract class PolarisFxController implements Initializable {
     }
 
     /**
-     * Gets the current stage of this root.
+     * Retrieves this Node's Parent Scene.
      *
-     * @return
+     * @return Scene
+     * @throws PolarisNoSceneException if there is no scene.
      */
-    public Stage getStage() {
+    public Scene getScene() throws PolarisNoSceneException {
+        Scene scene = this.<Parent>getRoot().getScene();
+        if (scene == null) {
+            throw new PolarisNoSceneException("This node is not part of any Scene.");
+        }
+        return scene;
+    }
+
+    /**
+     *
+     * @return Stage
+     * @throws PolarisNoSceneException if there is no scene.
+     * @throws PolarisNoWindowException if there is no stage.
+     */
+    public Stage getStage() throws PolarisNoSceneException, PolarisNoWindowException, ClassCastException {
+        Window window = this.getScene().getWindow();
+        if (window == null) {
+            throw new PolarisNoWindowException("This scene is not part of any Window.");
+        }
         try {
-            return (Stage) this.getRootPane().getScene().getWindow();
+            return (Stage) this.getScene().getWindow();
         } catch (ClassCastException e) {
-            throw new PolarisException("Cannot get the current stage.", e);
+            throw new ClassCastException("Cannot this window into a stage.");
         }
     }
 
@@ -127,13 +203,14 @@ public abstract class PolarisFxController implements Initializable {
      * Changes the root of the currently active scene.
      *
      * @param newRoot the new root.
-     * @throws NullPointerException when there is no active scene.
+     * @throws PolarisNoSceneException if there is no scene.
+     * @throws PolarisNoWindowException if there is no stage.
      */
-    public void changeRoot(Parent newRoot) throws NullPointerException {
+    public void changeRoot(Parent newRoot) throws PolarisNoSceneException, PolarisNoWindowException {
         Stage currentStage = this.getStage();
         this.getRootPane().setPrefWidth(currentStage.getWidth());
         this.getRootPane().setPrefHeight(currentStage.getHeight());
-        this.getRootPane().getScene().setRoot(newRoot);
+        this.getScene().setRoot(newRoot);
     }
 
 }

@@ -23,49 +23,24 @@
  * SOFTWARE.
  *
  */
-package org.afterschoolcreatives.polaris.java.util;
-
-import org.afterschoolcreatives.polaris.java.PolarisRuntimeException;
+package org.afterschoolcreatives.polaris.java.exceptions;
 
 /**
- * For Reflective Operations.
+ * Polaris Annotation Exception. Exclusively for Reflecting in Annotations.
  *
  * @author Jhon Melvin
  */
-public class PolarisWrapper {
+public class PolarisAnnotationException extends PolarisReflectionException {
 
-    /**
-     * Automatically Wraps a primitive data type to its specific wrapper class.
-     *
-     * @param type
-     * @return
-     */
-    public final static Class autoBox(Class type) {
-        if (!type.isPrimitive()) {
-            return type;
-        }
-
-        if (type.equals(boolean.class)) {
-            return Boolean.class;
-        } else if (type.equals(byte.class)) {
-            return Byte.class;
-        } else if (type.equals(char.class)) {
-            return Character.class;
-        } else if (type.equals(double.class)) {
-            return Double.class;
-        } else if (type.equals(float.class)) {
-            return Float.class;
-        } else if (type.equals(int.class)) {
-            return Integer.class;
-        } else if (type.equals(long.class)) {
-            return Long.class;
-        } else if (type.equals(short.class)) {
-            return Short.class;
-        } else if (type.equals(void.class)) {
-            return Void.class;
-        }
-
-        throw new PolarisRuntimeException("Unknown Primitive Type");
+    public PolarisAnnotationException(String message) {
+        super(message);
     }
 
+    public PolarisAnnotationException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    public PolarisAnnotationException(Throwable cause) {
+        super(cause);
+    }
 }

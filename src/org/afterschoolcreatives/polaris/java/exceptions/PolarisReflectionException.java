@@ -23,49 +23,25 @@
  * SOFTWARE.
  *
  */
-package org.afterschoolcreatives.polaris.java.util;
+package org.afterschoolcreatives.polaris.java.exceptions;
 
 import org.afterschoolcreatives.polaris.java.PolarisRuntimeException;
 
 /**
- * For Reflective Operations.
  *
  * @author Jhon Melvin
  */
-public class PolarisWrapper {
+public class PolarisReflectionException extends PolarisRuntimeException {
 
-    /**
-     * Automatically Wraps a primitive data type to its specific wrapper class.
-     *
-     * @param type
-     * @return
-     */
-    public final static Class autoBox(Class type) {
-        if (!type.isPrimitive()) {
-            return type;
-        }
-
-        if (type.equals(boolean.class)) {
-            return Boolean.class;
-        } else if (type.equals(byte.class)) {
-            return Byte.class;
-        } else if (type.equals(char.class)) {
-            return Character.class;
-        } else if (type.equals(double.class)) {
-            return Double.class;
-        } else if (type.equals(float.class)) {
-            return Float.class;
-        } else if (type.equals(int.class)) {
-            return Integer.class;
-        } else if (type.equals(long.class)) {
-            return Long.class;
-        } else if (type.equals(short.class)) {
-            return Short.class;
-        } else if (type.equals(void.class)) {
-            return Void.class;
-        }
-
-        throw new PolarisRuntimeException("Unknown Primitive Type");
+    public PolarisReflectionException(String message) {
+        super(message);
     }
 
+    public PolarisReflectionException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    public PolarisReflectionException(Throwable cause) {
+        super(cause);
+    }
 }

@@ -30,11 +30,7 @@ package org.afterschoolcreatives.polaris.java;
  *
  * @author Jhon Melvin
  */
-public class PolarisException extends RuntimeException {
-
-    public PolarisException() {
-        super();
-    }
+public class PolarisRuntimeException extends RuntimeException {
 
     /**
      * Constructs a new runtime exception with the specified detail message. The
@@ -44,7 +40,7 @@ public class PolarisException extends RuntimeException {
      * @param message the detail message. The detail message is saved for later
      * retrieval by the {@link #getMessage()} method.
      */
-    public PolarisException(String message) {
+    public PolarisRuntimeException(String message) {
         super(message);
     }
 
@@ -62,7 +58,7 @@ public class PolarisException extends RuntimeException {
      * indicates that the cause is nonexistent or unknown.)
      * @since 1.4
      */
-    public PolarisException(String message, Throwable cause) {
+    public PolarisRuntimeException(String message, Throwable cause) {
         super(message, cause);
     }
 
@@ -78,7 +74,7 @@ public class PolarisException extends RuntimeException {
      * indicates that the cause is nonexistent or unknown.)
      * @since 1.4
      */
-    public PolarisException(Throwable cause) {
+    public PolarisRuntimeException(Throwable cause) {
         super(cause);
     }
 }
