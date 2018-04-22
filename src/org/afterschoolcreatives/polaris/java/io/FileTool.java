@@ -37,11 +37,13 @@ import java.nio.channels.NonReadableChannelException;
 import java.nio.channels.NonWritableChannelException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
 /**
- * A helper class for files.
+ * A helper class for files. NO SYMBOLIC LINKS HERE.
  *
  * @author Jhon Melvin
  */
@@ -157,11 +159,11 @@ public class FileTool {
         /**
          * Check if existing.
          */
-        if (Files.exists(Paths.get(filePath))) {
+        if (Files.exists(Paths.get(filePath), LinkOption.NOFOLLOW_LINKS)) {
             /**
              * Check if the existing file is a directory.
              */
-            if (Files.isDirectory(Paths.get(filePath))) {
+            if (Files.isDirectory(Paths.get(filePath), LinkOption.NOFOLLOW_LINKS)) {
                 return true;
             }
             // if the existing file is not a directory throw exception.
@@ -189,6 +191,121 @@ public class FileTool {
             return FileTool.checkFolders(filePath);
         } catch (IOException ex) {
             // ignore
+            return false;
+        }
+    }
+
+    /**
+     * Deletes a file or folder and its contents.
+     *
+     * @param dirPath folder path
+     * @return the number of files that have failed to be deleted. 0 means that
+     * all files are deleted.
+     * @throws IOException
+     */
+    public static int deleteFileOrFolder(String dirPath) throws IOException {
+        DeletingFileVisitor fv = new DeletingFileVisitor();
+        Files.walkFileTree(Paths.get(dirPath), fv);
+        return fv.getFailedToDelete().size();
+    }
+
+    /**
+     * Deletes a file or folder and its contents.
+     *
+     * @param dirPath folder path
+     * @return the number of files that have failed to be deleted. 0 for all
+     * files are deleted -1 if error occurs.
+     */
+    public static int deleteFileOrFolderQuietly(String dirPath) {
+        try {
+            return deleteFileOrFolder(dirPath);
+        } catch (IOException e) {
+            return -1;
+        }
+    }
+
+    /**
+     * check the file if not existing.
+     *
+     * @param path
+     * @return
+     * @throws NoSuchFileException existing but not a file it is a directory.
+     */
+    public static boolean checkFile(String path) throws NoSuchFileException {
+        return checkFile(Paths.get(path));
+    }
+
+    public static boolean checkFile(Path path) throws NoSuchFileException {
+        if (Files.exists(path, LinkOption.NOFOLLOW_LINKS)) {
+            if (Files.isDirectory(path, LinkOption.NOFOLLOW_LINKS)) {
+                /**
+                 * File is a directory throw exception.
+                 */
+                throw new NoSuchFileException("The file is existing but it is a directory.");
+            } else {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Check a file if its already existing. this method will return false if
+     * the file is already existing but a directory.
+     *
+     * this method will also delete the file if its a directory then return
+     * false.
+     *
+     * @param path
+     * @return true if its a file and it is existing.
+     */
+    public static boolean checkFileQuietly(String path) {
+        try {
+            return checkFile(path);
+        } catch (NoSuchFileException e) {
+            /**
+             * Delete if its a directory.
+             */
+            deleteFileOrFolderQuietly(path);
+            return false;
+        }
+    }
+
+    /**
+     * Deletes a file. if the file is a directory this will call
+     * deleteFileOrFolder.
+     *
+     * @param path
+     * @return
+     * @throws IOException
+     */
+    public static boolean deleteFile(String path) throws IOException {
+        Path filePath = Paths.get(path);
+        if (Files.exists(filePath, LinkOption.NOFOLLOW_LINKS)) {
+            if (Files.isDirectory(filePath, LinkOption.NOFOLLOW_LINKS)) {
+                int res = deleteFileOrFolder(path);
+                return res == 0; // return true if res = 0;
+            } else {
+                // file is surely existing.
+                return Files.deleteIfExists(filePath);
+            }
+        } else {
+            // file not exist same as deleted.
+            return true;
+        }
+    }
+
+    /**
+     * Deletes a file. if the file is a directory this will call
+     * deleteFileOrFolder.
+     *
+     * @param path
+     * @return
+     */
+    public static boolean deleteFileQuietly(String path) {
+        try {
+            return deleteFile(path);
+        } catch (IOException e) {
             return false;
         }
     }
