@@ -25,7 +25,7 @@
  */
 package org.afterschoolcreatives.polaris.java.util;
 
-import org.afterschoolcreatives.polaris.java.PolarisRuntimeException;
+import org.afterschoolcreatives.polaris.java.exceptions.PolarisRuntimeException;
 
 /**
  * For Reflective Operations.

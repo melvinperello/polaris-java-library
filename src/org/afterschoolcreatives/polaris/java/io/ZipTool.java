@@ -23,23 +23,12 @@
  * SOFTWARE.
  *
  */
-package org.afterschoolcreatives.polaris.java.exceptions;
+package org.afterschoolcreatives.polaris.java.io;
 
 /**
  *
  * @author Jhon Melvin
  */
-public class PrimaryKeyAnnotationException extends PolarisAnnotationException {
-
-    public PrimaryKeyAnnotationException(String message) {
-        super(message);
-    }
-
-    public PrimaryKeyAnnotationException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
-    public PrimaryKeyAnnotationException(Throwable cause) {
-        super(cause);
-    }
+public class ZipTool {
+    
 }

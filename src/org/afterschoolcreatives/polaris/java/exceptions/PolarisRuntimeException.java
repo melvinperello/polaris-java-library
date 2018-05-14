@@ -26,21 +26,25 @@
 package org.afterschoolcreatives.polaris.java.exceptions;
 
 /**
- * Polaris Annotation Exception. Exclusively for Reflecting in Annotations.
+ * General Runtime Exception for polaris library operations.
  *
  * @author Jhon Melvin
  */
-public class PolarisAnnotationException extends PolarisReflectionException {
+public class PolarisRuntimeException extends RuntimeException {
 
-    public PolarisAnnotationException(String message) {
+    public PolarisRuntimeException() {
+        super();
+    }
+
+    public PolarisRuntimeException(String message) {
         super(message);
     }
 
-    public PolarisAnnotationException(String message, Throwable cause) {
+    public PolarisRuntimeException(String message, Throwable cause) {
         super(message, cause);
     }
 
-    public PolarisAnnotationException(Throwable cause) {
+    public PolarisRuntimeException(Throwable cause) {
         super(cause);
     }
 }

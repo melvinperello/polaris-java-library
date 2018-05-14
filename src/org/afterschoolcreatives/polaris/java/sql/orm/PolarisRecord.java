@@ -36,9 +36,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.afterschoolcreatives.polaris.java.exceptions.PolarisAnnotationException;
-import org.afterschoolcreatives.polaris.java.PolarisRuntimeException;
-import org.afterschoolcreatives.polaris.java.exceptions.PrimaryKeyAnnotationException;
+import org.afterschoolcreatives.polaris.java.exceptions.PolarisReflectionException.InvalidAnnotationException;
+import org.afterschoolcreatives.polaris.java.exceptions.PolarisRuntimeException;
 import org.afterschoolcreatives.polaris.java.sql.ConnectionManager;
 import org.afterschoolcreatives.polaris.java.sql.DataRow;
 import org.afterschoolcreatives.polaris.java.sql.DataSet;
@@ -57,7 +56,7 @@ import org.afterschoolcreatives.polaris.java.util.StringTools;
  *
  * @author Jhon Melvin
  */
-public class PolarisRecord implements Model {
+public class PolarisRecord implements PolarisRecordInterface {
 
     private static final Logger LOGGER = Logger.getLogger(PolarisRecord.class.getName());
 
@@ -93,7 +92,7 @@ public class PolarisRecord implements Model {
     /**
      * Uses reflection to introspect the model.
      */
-    private void reflect() throws PolarisAnnotationException {
+    private void reflect() throws InvalidAnnotationException {
         /**
          * Use Reflections to get the field data.
          */
@@ -102,7 +101,7 @@ public class PolarisRecord implements Model {
          * If there is no fields throw an exception.
          */
         if (locFields.isEmpty()) {
-            throw new PolarisAnnotationException("No Fields are Annotated and cannot be recognized.");
+            throw new InvalidAnnotationException("No Fields are Annotated and cannot be recognized.");
         }
         /**
          * Get the table name from the first entry.
@@ -359,11 +358,11 @@ public class PolarisRecord implements Model {
          * Create Where Clause if has primary key.
          */
         if (primaryKeyData == null) {
-            throw new PrimaryKeyAnnotationException("Cannot update model no field is assigned as primary key or annotated with @PrimaryKey");
+            throw new InvalidAnnotationException("Cannot update model no field is assigned as primary key or annotated with @PrimaryKey");
         }
 
         if (primaryKeyData.getFieldValue() == null) {
-            throw new PrimaryKeyAnnotationException("Cannot update model when primary key value is null");
+            throw new InvalidAnnotationException("Cannot update model when primary key value is null");
         }
         /**
          * Created Where Clause.
@@ -461,11 +460,11 @@ public class PolarisRecord implements Model {
          * Check Primary Key.
          */
         if (primaryKeyData == null) {
-            throw new PolarisAnnotationException("Cannot Execute Delete: No Field is Annotated as Primary Key.");
+            throw new InvalidAnnotationException("Cannot Execute Delete: No Field is Annotated as Primary Key.");
         }
 
         if (primaryKeyData.getFieldValue() == null) {
-            throw new PolarisAnnotationException("Cannot Execute Delete: Primary Key Value is Null.");
+            throw new InvalidAnnotationException("Cannot Execute Delete: Primary Key Value is Null.");
         }
 
         /**
@@ -526,7 +525,7 @@ public class PolarisRecord implements Model {
          * Check Primary Key.
          */
         if (primaryKeyData == null) {
-            throw new PolarisAnnotationException("Cannot Retrieve Records: No Field is Annotated as Primary Key.");
+            throw new InvalidAnnotationException("Cannot Retrieve Records: No Field is Annotated as Primary Key.");
         }
 
         /**
@@ -813,7 +812,7 @@ public class PolarisRecord implements Model {
          * @param model an object model.
          * @return list of fields with values and specifications.
          */
-        public static ArrayList<RecordData> reflect(Model model) {
+        public static ArrayList<RecordData> reflect(PolarisRecordInterface model) {
 
             String tableName = null;
 
@@ -857,7 +856,7 @@ public class PolarisRecord implements Model {
                     /**
                      * Throw runtime error.
                      */
-                    throw new PolarisAnnotationException("Unable to set the generated key." + field.getName(), e);
+                    throw new InvalidAnnotationException("Unable to set the generated key." + field.getName(), e);
                 }
                 /**
                  * Get the data type.
@@ -880,7 +879,7 @@ public class PolarisRecord implements Model {
                             /**
                              * Throw error if primary key is more than one.
                              */
-                            throw new PolarisAnnotationException("Primary Key Annotation must be only used once.");
+                            throw new InvalidAnnotationException("Primary Key Annotation must be only used once.");
                         }
                     }
 
@@ -901,7 +900,7 @@ public class PolarisRecord implements Model {
          *
          * @param model
          */
-        private static void readModelAnnotations(Model model, RecordData pma) {
+        private static void readModelAnnotations(PolarisRecordInterface model, RecordData pma) {
             Annotation[] annotations = model.getClass().getAnnotations();
             for (Annotation annotation : annotations) {
                 if (annotation instanceof Table) {

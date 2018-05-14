@@ -25,8 +25,6 @@
  */
 package org.afterschoolcreatives.polaris.java.exceptions;
 
-import org.afterschoolcreatives.polaris.java.PolarisRuntimeException;
-
 /**
  *
  * @author Jhon Melvin

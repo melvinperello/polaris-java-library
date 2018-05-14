@@ -25,7 +25,7 @@
  */
 package org.afterschoolcreatives.polaris.java.sql;
 
-import org.afterschoolcreatives.polaris.java.PolarisRuntimeException;
+import org.afterschoolcreatives.polaris.java.exceptions.PolarisRuntimeException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;

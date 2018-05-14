@@ -25,13 +25,15 @@
  */
 package org.afterschoolcreatives.polaris.java.exceptions;
 
-import org.afterschoolcreatives.polaris.java.PolarisRuntimeException;
-
 /**
  *
  * @author Jhon Melvin
  */
 public class PolarisReflectionException extends PolarisRuntimeException {
+
+    public PolarisReflectionException() {
+        super();
+    }
 
     public PolarisReflectionException(String message) {
         super(message);
@@ -43,5 +45,27 @@ public class PolarisReflectionException extends PolarisRuntimeException {
 
     public PolarisReflectionException(Throwable cause) {
         super(cause);
+    }
+
+    /**
+     * Invalid Annotation Exception for Polaris.
+     */
+    public static class InvalidAnnotationException extends PolarisReflectionException {
+
+        public InvalidAnnotationException() {
+            super();
+        }
+
+        public InvalidAnnotationException(String message) {
+            super(message);
+        }
+
+        public InvalidAnnotationException(String message, Throwable cause) {
+            super(message, cause);
+        }
+
+        public InvalidAnnotationException(Throwable cause) {
+            super(cause);
+        }
     }
 }

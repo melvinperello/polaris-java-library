@@ -35,7 +35,7 @@ import org.afterschoolcreatives.polaris.java.sql.builder.QueryBuilder;
  *
  * @author Jhon Melvin
  */
-public interface Model {
+public interface PolarisRecordInterface {
 
     /**
      * Inserts a record.

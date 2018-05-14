@@ -36,11 +36,16 @@ import java.nio.channels.FileChannel;
 import java.nio.channels.NonReadableChannelException;
 import java.nio.channels.NonWritableChannelException;
 import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A helper class for files. NO SYMBOLIC LINKS HERE.
@@ -308,6 +313,68 @@ public class FileTool {
         } catch (IOException e) {
             return false;
         }
+    }
+
+    /**
+     * Static File Visitor.
+     */
+    public static class DeletingFileVisitor extends SimpleFileVisitor<Path> {
+
+        private final List<Path> failedToDelete;
+
+        public DeletingFileVisitor() {
+            super();
+            this.failedToDelete = new ArrayList<>();
+        }
+
+        public List<Path> getFailedToDelete() {
+            return failedToDelete;
+        }
+
+        @Override
+        public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) {
+            try {
+                return super.preVisitDirectory(dir, attrs);
+            } catch (IOException e) {
+                // failed to visit this directory therefore failed to delete.
+                this.failedToDelete.add(dir);
+                return FileVisitResult.CONTINUE;
+            }
+        }
+
+        @Override
+        public FileVisitResult visitFileFailed(Path file, IOException exc) {
+            // failed to visit
+            this.failedToDelete.add(file);
+            return FileVisitResult.CONTINUE;
+        }
+
+        @Override
+        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
+            try {
+                Files.delete(file);
+            } catch (IOException e) {
+                // failed to delete file
+                this.failedToDelete.add(file);
+            }
+            return FileVisitResult.CONTINUE;
+        }
+
+        @Override
+        public FileVisitResult postVisitDirectory(Path dir, IOException exc) {
+            if (exc != null) {
+                this.failedToDelete.add(dir);
+            } else {
+                try {
+                    Files.delete(dir);
+                } catch (IOException e) {
+                    // failed to delete directory
+                    this.failedToDelete.add(dir);
+                }
+            }
+            return FileVisitResult.CONTINUE;
+        }
+
     }
 
 }
