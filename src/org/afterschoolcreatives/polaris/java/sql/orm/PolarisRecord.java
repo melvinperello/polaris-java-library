@@ -58,28 +58,34 @@ import org.afterschoolcreatives.polaris.java.util.StringTools;
  */
 public class PolarisRecord implements PolarisRecordInterface {
 
+    //--------------------------------------------------------------------------
+    // logger instance
     private static final Logger LOGGER = Logger.getLogger(PolarisRecord.class.getName());
+    //--------------------------------------------------------------------------
+    // SQL KEY WORDS
+    private final static String sqlEscapeCharacter = "`"; // used when using reserved words
+    private final static String sqlInsert = "INSERT"; // insert keyword
+    private final static String sqlInto = "INTO";
+    private final static String sqlValues = "VALUES";
+    private final static String sqlUpdate = "UPDATE";
+    private final static String sqlSet = "SET";
+    private final static String sqlWhere = "WHERE";
+    private final static String sqlDelete = "DELETE";
+    private final static String sqlFrom = "FROM";
+    private final static String sqlSelect = "SELECT";
+    private final static String sqlLimit = "LIMIT";
+    //--------------------------------------------------------------------------
 
+    /**
+     * Default constructor.
+     */
     protected PolarisRecord() {
 
     }
 
-    /**
-     * ESCAPE CHARACTER.
-     */
-    protected String sqlEscapeCharacter = "`"; // used when using reserved words
-    // Used SQL Key Words.
-    protected String sqlInsert = "INSERT"; // insert keyword
-    protected String sqlInto = "INTO";
-    protected String sqlValues = "VALUES";
-    protected String sqlUpdate = "UPDATE";
-    protected String sqlSet = "SET";
-    protected String sqlWhere = "WHERE";
-    protected String sqlDelete = "DELETE";
-    protected String sqlFrom = "FROM";
-    protected String sqlSelect = "SELECT";
-    protected String sqlLimit = "LIMIT";
-
+    //--------------------------------------------------------------------------
+    // CORE FIELDS.
+    //--------------------------------------------------------------------------
     /**
      * Reflected Table Name.
      */
@@ -88,9 +94,12 @@ public class PolarisRecord implements PolarisRecordInterface {
      * Reflected Fields.
      */
     private ArrayList<RecordData> classFields;
+    //--------------------------------------------------------------------------
 
     /**
      * Uses reflection to introspect the model.
+     *
+     * @deprecated redundant calls every function.
      */
     private void reflect() throws InvalidAnnotationException {
         /**
@@ -133,14 +142,12 @@ public class PolarisRecord implements PolarisRecordInterface {
         this.reflect();
         ArrayList<RecordData> fields = this.classFields;
         String tableName = this.classTableName;
-
-        /**
-         * Create a starting query.
-         */
+        //----------------------------------------------------------------------
+        // INSERT QUERY PREAMBLE.
         final String startQuery = this.sqlInsert + " " + this.sqlInto
                 + " " + sqlEscapeCharacter + tableName + sqlEscapeCharacter
                 + " ";
-
+        //----------------------------------------------------------------------
         /**
          * Initialize builders.
          */
@@ -811,6 +818,7 @@ public class PolarisRecord implements PolarisRecordInterface {
          *
          * @param model an object model.
          * @return list of fields with values and specifications.
+         * @deprecated redundant calls.
          */
         public static ArrayList<RecordData> reflect(PolarisRecordInterface model) {
 
@@ -899,6 +907,7 @@ public class PolarisRecord implements PolarisRecordInterface {
          * Reads the annotations of a model.
          *
          * @param model
+         * @deprecated redundant calls
          */
         private static void readModelAnnotations(PolarisRecordInterface model, RecordData pma) {
             Annotation[] annotations = model.getClass().getAnnotations();

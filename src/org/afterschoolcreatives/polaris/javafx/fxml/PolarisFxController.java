@@ -40,7 +40,7 @@ import javafx.stage.Stage;
 import javafx.stage.Window;
 import org.afterschoolcreatives.polaris.java.exceptions.PolarisFxLoadingException;
 import org.afterschoolcreatives.polaris.java.exceptions.PolarisNoSceneException;
-import org.afterschoolcreatives.polaris.java.exceptions.PolarisNoWindowException;
+import org.afterschoolcreatives.polaris.java.exceptions.PolarisNoStageException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -185,12 +185,12 @@ public abstract class PolarisFxController implements Initializable {
      *
      * @return Stage
      * @throws PolarisNoSceneException if there is no scene.
-     * @throws PolarisNoWindowException if there is no stage.
+     * @throws PolarisNoStageException if there is no stage.
      */
-    public Stage getStage() throws PolarisNoSceneException, PolarisNoWindowException, ClassCastException {
+    public Stage getStage() throws PolarisNoSceneException, PolarisNoStageException, ClassCastException {
         Window window = this.getScene().getWindow();
         if (window == null) {
-            throw new PolarisNoWindowException("This scene is not part of any Window.");
+            throw new PolarisNoStageException("This scene is not part of any Window.");
         }
         try {
             return (Stage) this.getScene().getWindow();
@@ -204,9 +204,9 @@ public abstract class PolarisFxController implements Initializable {
      *
      * @param newRoot the new root.
      * @throws PolarisNoSceneException if there is no scene.
-     * @throws PolarisNoWindowException if there is no stage.
+     * @throws PolarisNoStageException if there is no stage.
      */
-    public void changeRoot(Parent newRoot) throws PolarisNoSceneException, PolarisNoWindowException {
+    public void changeRoot(Parent newRoot) throws PolarisNoSceneException, PolarisNoStageException {
         Stage currentStage = this.getStage();
         this.getRootPane().setPrefWidth(currentStage.getWidth());
         this.getRootPane().setPrefHeight(currentStage.getHeight());
