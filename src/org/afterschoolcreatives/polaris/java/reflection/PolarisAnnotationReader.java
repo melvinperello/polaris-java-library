@@ -39,12 +39,24 @@ import java.util.List;
  */
 public class PolarisAnnotationReader {
 
+    /**
+     * Get all annotations in this class.
+     *
+     * @param javaClass
+     * @return
+     */
     public static Annotation[] getClassAnnotations(Class javaClass) {
         Annotation[] classAnnotation = javaClass.getDeclaredAnnotations();
         return classAnnotation;
     }
 
-    public static Constructor[] checkConstructor(Class javaClass) {
+    /**
+     * Get all annotated constructors of this class.
+     *
+     * @param javaClass
+     * @return
+     */
+    public static Constructor[] getAnnotatedConstructors(Class javaClass) {
         Constructor[] contructors = javaClass.getDeclaredConstructors();
         final List<Constructor> annotatedConstructor = new ArrayList<>();
         for (Constructor contructor : contructors) {
@@ -56,7 +68,13 @@ public class PolarisAnnotationReader {
         return annotatedConstructor.toArray(new Constructor[annotatedConstructor.size()]);
     }
 
-    public static Field[] checkFields(Class javaClass) {
+    /**
+     * Get all annotated fields.
+     *
+     * @param javaClass
+     * @return
+     */
+    public static Field[] getAnnotatedFields(Class javaClass) {
         Field[] fields = javaClass.getDeclaredFields();
         final List<Field> annotatedField = new ArrayList<>();
         for (Field field : fields) {
@@ -68,7 +86,13 @@ public class PolarisAnnotationReader {
         return annotatedField.toArray(new Field[annotatedField.size()]);
     }
 
-    public static Method[] checkMethods(Class javaClass) {
+    /**
+     * Get all annotated methods.
+     *
+     * @param javaClass
+     * @return
+     */
+    public static Method[] getAnnotatedMethods(Class javaClass) {
         Method[] methods = javaClass.getDeclaredMethods();
         final List<Method> annotatedMethod = new ArrayList<>();
         for (Method method : methods) {

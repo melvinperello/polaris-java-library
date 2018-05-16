@@ -68,4 +68,26 @@ public class PolarisReflectionException extends PolarisRuntimeException {
             super(cause);
         }
     }
+
+    /**
+     * Missing Annotation Exception for Polaris.
+     */
+    public static class MissingAnnotationException extends PolarisReflectionException {
+
+        public MissingAnnotationException() {
+            super();
+        }
+
+        public MissingAnnotationException(String message) {
+            super(message);
+        }
+
+        public MissingAnnotationException(String message, Throwable cause) {
+            super(message, cause);
+        }
+
+        public MissingAnnotationException(Throwable cause) {
+            super(cause);
+        }
+    }
 }

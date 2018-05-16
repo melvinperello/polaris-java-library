@@ -34,10 +34,11 @@ import java.lang.reflect.Method;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.afterschoolcreatives.polaris.java.exceptions.PolarisReflectionException;
 import org.afterschoolcreatives.polaris.java.exceptions.PolarisReflectionException.InvalidAnnotationException;
 import org.afterschoolcreatives.polaris.java.exceptions.PolarisRuntimeException;
+import org.afterschoolcreatives.polaris.java.reflection.PolarisAnnotatedClass;
 import org.afterschoolcreatives.polaris.java.sql.ConnectionManager;
 import org.afterschoolcreatives.polaris.java.sql.DataRow;
 import org.afterschoolcreatives.polaris.java.sql.DataSet;
@@ -48,6 +49,8 @@ import org.afterschoolcreatives.polaris.java.sql.orm.annotations.PrimaryKey;
 import org.afterschoolcreatives.polaris.java.sql.orm.annotations.Table;
 import org.afterschoolcreatives.polaris.java.util.PolarisWrapper;
 import org.afterschoolcreatives.polaris.java.util.StringTools;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * My First Attempt to create a model. this is the basic implementation of the
@@ -60,7 +63,7 @@ public class PolarisRecord implements PolarisRecordInterface {
 
     //--------------------------------------------------------------------------
     // logger instance
-    private static final Logger LOGGER = Logger.getLogger(PolarisRecord.class.getName());
+    private static final Logger L = LoggerFactory.getLogger(PolarisRecord.class);
     //--------------------------------------------------------------------------
     // SQL KEY WORDS
     private final static String sqlEscapeCharacter = "`"; // used when using reserved words
@@ -76,24 +79,67 @@ public class PolarisRecord implements PolarisRecordInterface {
     private final static String sqlLimit = "LIMIT";
     //--------------------------------------------------------------------------
 
+    private PolarisAnnotatedClass annotatedStructure;
+
     /**
      * Default constructor.
      */
     protected PolarisRecord() {
+        this.annotatedStructure = null;
+        this.databaseTableName = null;
+    }
 
+    /**
+     * Reflected Table Name.
+     */
+    private String databaseTableName;
+
+    private void polarisRecordingProcess() {
+        L.debug("INVOKED: Polaris Recording Process");
+        this.reflectionProcess();
+        this.polarizingProcess();
+    }
+
+    private void reflectionProcess() {
+        L.debug("INVOKED: Reflection Process");
+        if (this.annotatedStructure == null) {
+            L.debug("[ WORK ] Reflection Process");
+            this.annotatedStructure = new PolarisAnnotatedClass(this.getClass());
+        } else {
+            L.debug("[ DONE ] Reflection Process");
+        }
+    }
+
+    private void polarizingProcess() {
+        L.debug("INVOKED: Polarizing Process");
+        // Get Table Name
+        if (this.databaseTableName == null) {
+            L.debug("[ WORK ] Polarizing Process");
+            for (Annotation classAnnotation : this.annotatedStructure.getClassAnnotations()) {
+                //--------------------------------------------------------------
+                // Search Table Annotation.
+                if (classAnnotation instanceof Table) {
+                    Table table = (Table) classAnnotation;
+                    this.databaseTableName = table.value();
+                    break;
+                }
+                //--------------------------------------------------------------
+            }
+            if (this.databaseTableName == null) {
+                throw new PolarisReflectionException.MissingAnnotationException(Table.class.getName() + " was not found");
+            }
+        } else {
+            L.debug("[ DONE ] Polarizing Process");
+        }
     }
 
     //--------------------------------------------------------------------------
     // CORE FIELDS.
     //--------------------------------------------------------------------------
     /**
-     * Reflected Table Name.
-     */
-    private String classTableName;
-    /**
      * Reflected Fields.
      */
-    private ArrayList<RecordData> classFields;
+    private ArrayList<DatabaseFields> classFields;
     //--------------------------------------------------------------------------
 
     /**
@@ -102,10 +148,11 @@ public class PolarisRecord implements PolarisRecordInterface {
      * @deprecated redundant calls every function.
      */
     private void reflect() throws InvalidAnnotationException {
+        this.polarisRecordingProcess();
         /**
          * Use Reflections to get the field data.
          */
-        ArrayList<RecordData> locFields = RecordData.reflect(this);
+        ArrayList<DatabaseFields> locFields = DatabaseFields.reflect(this);
         /**
          * If there is no fields throw an exception.
          */
@@ -115,13 +162,13 @@ public class PolarisRecord implements PolarisRecordInterface {
         /**
          * Get the table name from the first entry.
          */
-        String locTableName = locFields.get(0).getTable();
+//        String locTableName = locFields.get(0).getTable();
 
         /**
          * Assign to class variables.
          */
         this.classFields = locFields;
-        this.classTableName = locTableName;
+//        this.databaseTableName = locTableName;
     }
 
     /**
@@ -140,8 +187,8 @@ public class PolarisRecord implements PolarisRecordInterface {
          * Reflection.
          */
         this.reflect();
-        ArrayList<RecordData> fields = this.classFields;
-        String tableName = this.classTableName;
+        ArrayList<DatabaseFields> fields = this.classFields;
+        String tableName = this.databaseTableName;
         //----------------------------------------------------------------------
         // INSERT QUERY PREAMBLE.
         final String startQuery = this.sqlInsert + " " + this.sqlInto
@@ -160,10 +207,10 @@ public class PolarisRecord implements PolarisRecordInterface {
         /**
          * Create Primary Key Holder if any.
          */
-        RecordData primaryKeyData = null;
+        DatabaseFields primaryKeyData = null;
 
         for (int cursor = 0; cursor < fields.size(); cursor++) {
-            RecordData modelData = fields.get(cursor);
+            DatabaseFields modelData = fields.get(cursor);
             /**
              * Check if primary.
              */
@@ -222,7 +269,7 @@ public class PolarisRecord implements PolarisRecordInterface {
 
         final String generatedQuery = startQuery + fieldBuilder.toString() + " " + this.sqlValues + " " + valueBuilder.toString() + ";";
         final String executeQuery = StringTools.clearExtraSpaces(generatedQuery);
-        LOGGER.log(Level.INFO, executeQuery);
+        L.debug(executeQuery);
 
         /**
          * Execute Query. the generated key will be null if no keys are
@@ -238,7 +285,7 @@ public class PolarisRecord implements PolarisRecordInterface {
                 Method convert = PolarisWrapper.autoBox(primaryKeyData.getFieldType()).getMethod("valueOf", String.class);
                 convertedKey = convert.invoke(null, generatedKey.toString());
             } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
-                LOGGER.log(Level.WARNING, "Cannot Retrieve Generated Key -> {0}", e.toString());
+//                L.log(Level.WARNING, "Cannot Retrieve Generated Key -> {0}", e.toString());
                 return false;
             }
             this.writeValue(this, primaryKeyData.getFieldName(), convertedKey);
@@ -287,8 +334,8 @@ public class PolarisRecord implements PolarisRecordInterface {
          * Reflection.
          */
         this.reflect();
-        ArrayList<RecordData> fields = this.classFields;
-        String tableName = this.classTableName;
+        ArrayList<DatabaseFields> fields = this.classFields;
+        String tableName = this.databaseTableName;
 
         /**
          * Create a starting query.
@@ -303,11 +350,11 @@ public class PolarisRecord implements PolarisRecordInterface {
         /**
          * Create Primary Key Holder if any.
          */
-        RecordData primaryKeyData = null;
+        DatabaseFields primaryKeyData = null;
 
         StringBuilder updateBuilder = new StringBuilder();
         for (int cursor = 0; cursor < fields.size(); cursor++) {
-            RecordData modelData = fields.get(cursor);
+            DatabaseFields modelData = fields.get(cursor);
             /**
              * Check if primary.
              */
@@ -384,7 +431,7 @@ public class PolarisRecord implements PolarisRecordInterface {
         queryParameters.add(primaryKeyData.getFieldValue());
         final String generatedQuery = startQuery + updateBuilder.toString() + whereClause;
         final String executeQuery = StringTools.clearExtraSpaces(generatedQuery);
-        LOGGER.log(Level.INFO, executeQuery);
+        L.debug(executeQuery);
         /**
          * Execute Update.
          */
@@ -437,8 +484,8 @@ public class PolarisRecord implements PolarisRecordInterface {
          * Reflection.
          */
         this.reflect();
-        ArrayList<RecordData> fields = this.classFields;
-        String tableName = this.classTableName;
+        ArrayList<DatabaseFields> fields = this.classFields;
+        String tableName = this.databaseTableName;
 
         /**
          * Create a starting query.
@@ -450,10 +497,10 @@ public class PolarisRecord implements PolarisRecordInterface {
         /**
          * Create Primary Key Holder if any.
          */
-        RecordData primaryKeyData = null;
+        DatabaseFields primaryKeyData = null;
 
         for (int cursor = 0; cursor < fields.size(); cursor++) {
-            RecordData modelData = fields.get(cursor);
+            DatabaseFields modelData = fields.get(cursor);
             /**
              * Check if primary.
              */
@@ -483,7 +530,7 @@ public class PolarisRecord implements PolarisRecordInterface {
 
         final String generatedQuery = startQuery + whereClause;
         final String executeQuery = StringTools.clearExtraSpaces(generatedQuery);
-        LOGGER.log(Level.INFO, executeQuery);
+        L.debug(executeQuery);
 
         int res = con.update(executeQuery, primaryKeyData.getFieldValue());
         /**
@@ -501,8 +548,8 @@ public class PolarisRecord implements PolarisRecordInterface {
          * Reflection.
          */
         this.reflect();
-        ArrayList<RecordData> fields = this.classFields;
-        String tableName = this.classTableName;
+        ArrayList<DatabaseFields> fields = this.classFields;
+        String tableName = this.databaseTableName;
 
         /**
          * Create a starting query.
@@ -515,10 +562,10 @@ public class PolarisRecord implements PolarisRecordInterface {
         /**
          * Create Primary Key Holder if any.
          */
-        RecordData primaryKeyData = null;
+        DatabaseFields primaryKeyData = null;
 
         for (int cursor = 0; cursor < fields.size(); cursor++) {
-            RecordData modelData = fields.get(cursor);
+            DatabaseFields modelData = fields.get(cursor);
             /**
              * Check if primary.
              */
@@ -544,21 +591,21 @@ public class PolarisRecord implements PolarisRecordInterface {
 
         final String generatedQuery = startQuery + whereClause;
         final String executeQuery = StringTools.clearExtraSpaces(generatedQuery);
-        LOGGER.log(Level.INFO, executeQuery);
+        L.debug(executeQuery);
 
         // Execute Statement
         DataRow dr = con.fetchFirst(executeQuery, id);
 
         // Check if Empty return false
         if (dr.isEmpty()) {
-            LOGGER.log(Level.INFO, "Result is empty.");
+            L.debug("Result is empty.");
             return false;
         }
 
         /**
          * Map The Data.
          */
-        for (RecordData field : fields) {
+        for (DatabaseFields field : fields) {
             Object value = dr.get(field.getColumnName());
             this.writeValue(this, field.getFieldName(), value);
         }
@@ -572,21 +619,21 @@ public class PolarisRecord implements PolarisRecordInterface {
          * Reflection.
          */
         this.reflect();
-        ArrayList<RecordData> fields = this.classFields;
+        ArrayList<DatabaseFields> fields = this.classFields;
 
         // Execute Statement
         DataRow dr = con.fetchFirst(builder.getQueryString(), builder.getParameters());
 
         // Check if Empty return false
         if (dr.isEmpty()) {
-            LOGGER.log(Level.INFO, "Result is empty.");
+            L.debug("Result is empty.");
             return false;
         }
 
         /**
          * Map The Data.
          */
-        for (RecordData field : fields) {
+        for (DatabaseFields field : fields) {
             Object value = dr.get(field.getColumnName());
             this.writeValue(this, field.getFieldName(), value);
         }
@@ -603,14 +650,14 @@ public class PolarisRecord implements PolarisRecordInterface {
          * Reflection.
          */
         this.reflect();
-        ArrayList<RecordData> fields = this.classFields;
+        ArrayList<DatabaseFields> fields = this.classFields;
 
         // get results
         DataSet ds = con.fetch(builder.getQueryString(), builder.getParameters());
 
         // Check if Empty return false
         if (ds.isEmpty()) {
-            LOGGER.log(Level.INFO, "Result is empty.");
+            L.debug("Result is empty.");
             return list; // return an empty list
         }
 
@@ -633,7 +680,7 @@ public class PolarisRecord implements PolarisRecordInterface {
             /**
              * Map The Data.
              */
-            for (RecordData field : fields) {
+            for (DatabaseFields field : fields) {
                 Object value = dataRow.get(field.getColumnName());
                 this.writeValue(row, field.getFieldName(), value);
             }
@@ -653,7 +700,7 @@ public class PolarisRecord implements PolarisRecordInterface {
      * A Class Data Holder that keeps the important values during reflection
      * scan.
      */
-    private static class RecordData {
+    private static class DatabaseFields {
 
         /**
          * flag if this field is a primary key.
@@ -820,13 +867,12 @@ public class PolarisRecord implements PolarisRecordInterface {
          * @return list of fields with values and specifications.
          * @deprecated redundant calls.
          */
-        public static ArrayList<RecordData> reflect(PolarisRecordInterface model) {
+        public static ArrayList<DatabaseFields> reflect(PolarisRecordInterface model) {
 
-            String tableName = null;
-
+//            String tableName = null;
             int primaryKeyCount = 0; // declare 0 pk counts
 
-            ArrayList<RecordData> fieldAnnotations = new ArrayList<>(10);
+            ArrayList<DatabaseFields> fieldAnnotations = new ArrayList<>(10);
             // get the declared fields
             Field[] fields = model.getClass().getDeclaredFields();
             // read declared fields.
@@ -838,21 +884,21 @@ public class PolarisRecord implements PolarisRecordInterface {
                     continue;
                 }
                 // create model annotation
-                RecordData pma = new RecordData();
-                /**
-                 * Read Model Annotations.
-                 */
-                if (tableName == null) {
-                    RecordData.readModelAnnotations(model, pma);
-                    /**
-                     * on the first run of read model annotations the table name
-                     * should already be fetched.
-                     */
-                    tableName = pma.getTable();
-                } else {
-                    // only execute the model reflection once.
-                    pma.setTable(tableName);
-                }
+                DatabaseFields pma = new DatabaseFields();
+//                /**
+//                 * Read Model Annotations.
+//                 */
+//                if (tableName == null) {
+//                    DatabaseFields.readModelAnnotations(model, pma);
+//                    /**
+//                     * on the first run of read model annotations the table name
+//                     * should already be fetched.
+//                     */
+//                    tableName = pma.getTable();
+//                } else {
+//                    // only execute the model reflection once.
+//                    pma.setTable(tableName);
+//                }
 
                 // read field name
                 pma.setFieldName(field.getName());
@@ -909,7 +955,7 @@ public class PolarisRecord implements PolarisRecordInterface {
          * @param model
          * @deprecated redundant calls
          */
-        private static void readModelAnnotations(PolarisRecordInterface model, RecordData pma) {
+        private static void readModelAnnotations(PolarisRecordInterface model, DatabaseFields pma) {
             Annotation[] annotations = model.getClass().getAnnotations();
             for (Annotation annotation : annotations) {
                 if (annotation instanceof Table) {

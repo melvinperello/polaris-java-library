@@ -23,7 +23,7 @@
  * SOFTWARE.
  *
  */
-package org.afterschoolcreatives.polaris.java.io;
+package org.afterschoolcreatives.polaris.java.util;
 
 /**
  *
