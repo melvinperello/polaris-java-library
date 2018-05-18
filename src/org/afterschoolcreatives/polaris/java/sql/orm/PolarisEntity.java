@@ -28,9 +28,11 @@ package org.afterschoolcreatives.polaris.java.sql.orm;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 import org.afterschoolcreatives.polaris.java.exceptions.PolarisReflectionException;
 import org.afterschoolcreatives.polaris.java.reflection.PolarisAnnotatedClass;
+import org.afterschoolcreatives.polaris.java.reflection.PolarisReflection;
 import org.afterschoolcreatives.polaris.java.sql.ConnectionManager;
 import org.afterschoolcreatives.polaris.java.sql.builder.QueryBuilder;
 import org.afterschoolcreatives.polaris.java.sql.orm.annotations.Column;
@@ -47,7 +49,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author Jhon Melvin
  */
-public class PolarisEntity implements PolarisEntityStructure {
+public class PolarisEntity extends PolarisRecord {
 
     //--------------------------------------------------------------------------
     // LOG INSTANCE.
@@ -84,9 +86,9 @@ public class PolarisEntity implements PolarisEntityStructure {
     }
 
     private void polarisEntityMapping() {
-        LOG.debug("");
-        LOG.debug("");
-        LOG.debug("[ RUN ] Polaris Entity Mapping Process");
+        LOG.trace("");
+        LOG.trace("");
+        LOG.trace("[ RUN ] Polaris Entity Mapping Process");
         this.reflectionProcess();
         this.polarizationProcess();
     }
@@ -98,21 +100,21 @@ public class PolarisEntity implements PolarisEntityStructure {
      * Gathering of Information about the class.
      */
     private void reflectionProcess() {
-        LOG.debug("[ RUN ] 01 - Reflection Process");
+        LOG.trace("[ RUN ] 01 - Reflection Process");
         //----------------------------------------------------------------------
         if (this.entityInformation == null) {
-            LOG.debug("[ X ] Reflection Process: creating entity information.");
+            LOG.trace("[ X ] Reflection Process: creating entity information.");
             this.entityInformation = new PolarisEntityInformation();
         } else {
-            LOG.debug("[ / ] Reflection Process: entity information already exists.");
+            LOG.trace("[ / ] Reflection Process: entity information already exists.");
         }
         //----------------------------------------------------------------------
 
         if (this.entityInformation.getAnnotatedStructure() == null) {
-            LOG.debug("[ X ] Reflection Process: running annotation reader.");
+            LOG.trace("[ X ] Reflection Process: running annotation reader.");
             this.entityInformation.setAnnotatedStructure(new PolarisAnnotatedClass(this.getClass()));
         } else {
-            LOG.debug("[ / ] Reflection Process: annotation structure already identified.");
+            LOG.trace("[ / ] Reflection Process: annotation structure already identified.");
         }
     }
 
@@ -123,12 +125,12 @@ public class PolarisEntity implements PolarisEntityStructure {
      * Converting the class information into a Polaris readable format.
      */
     private void polarizationProcess() {
-        LOG.debug("[ RUN ] 02 - Polarization Process");
+        LOG.trace("[ RUN ] 02 - Polarization Process");
         //----------------------------------------------------------------------
         // Get Table Name.
         //----------------------------------------------------------------------
         if (this.entityInformation.getEntityName() == null) {
-            LOG.debug("[ X ] Polarization Process: finding table name.");
+            LOG.trace("[ X ] Polarization Process: finding table name.");
             for (Annotation classAnnotation : this.entityInformation.getAnnotatedStructure().getClassAnnotations()) {
                 //--------------------------------------------------------------
                 // Search Table Annotation.
@@ -143,48 +145,89 @@ public class PolarisEntity implements PolarisEntityStructure {
                 throw new PolarisReflectionException.MissingAnnotationException(Table.class.getName() + " was not found");
             }
         } else {
-            LOG.debug("[ / ] Polarization Process: table name already stored.");
+            LOG.trace("[ / ] Polarization Process: table name already stored.");
         }
         //----------------------------------------------------------------------
         // Get Table Data.
         //----------------------------------------------------------------------
-        LOG.debug("[ X ] Polarization Process: checking table fields");
-        for (Field annotatedField : this.entityInformation.getAnnotatedStructure().getAnnotatedFields()) {
-            PolarisEntityInformation.EntityField entityField = new PolarisEntityInformation.EntityField();
-            entityField.setField(annotatedField);
-            LOG.debug("Field found: {}", annotatedField.getName());
-            LOG.debug("\tType: {}", annotatedField.getType());
-            for (Annotation annotation : annotatedField.getAnnotations()) {
-                LOG.debug("\t\tAnnotation found: {}", annotation.annotationType().getName());
-                if (annotation instanceof Column) {
-                    Column column = (Column) annotation;
-                    entityField.setColumnName(column.value());
-                } else if (annotation instanceof PrimaryKey) {
-                    entityField.setPrimaryKey(true);
-                } else if (annotation instanceof FetchOnly) {
-                    entityField.setFetchOnly(true);
-                } else if (annotation instanceof Unsigned) {
-                    entityField.setUnsigned(true);
-                } else if (annotation instanceof Nullable) {
-                    Nullable nullable = (Nullable) annotation;
-                    entityField.setNullMode(nullable.value());
-                } else if (annotation instanceof Limit) {
-                    Limit limit = (Limit) annotation;
-                    entityField.setLength(limit.length());
-                    entityField.setLimitApprehensionMode(limit.apprehension());
-                } else {
-                    // IGNORE ANNOTATION
-                }
-            }
+        if (this.entityInformation.getEntityFields() == null) {
+            LOG.trace("[ X ] Polarization Process: checking field annotations.");
+            List<PolarisEntityInformation.EntityField> fieldList = new ArrayList<>();
+            for (Field annotatedField : this.entityInformation.getAnnotatedStructure().getAnnotatedFields()) {
+                PolarisEntityInformation.EntityField entityField = new PolarisEntityInformation.EntityField();
+                entityField.setField(annotatedField);
+                LOG.trace("Field found: {}", annotatedField.getName());
+                LOG.trace("\tType: {}", annotatedField.getType());
+                for (Annotation annotation : annotatedField.getAnnotations()) {
+                    LOG.trace("\t\tAnnotation found: {}", annotation.annotationType().getSimpleName());
+                    if (annotation instanceof Column) {
+                        Column column = (Column) annotation;
+                        entityField.setColumnName(column.value());
+                    } else if (annotation instanceof PrimaryKey) {
+                        entityField.setPrimaryKey(true);
+                    } else if (annotation instanceof FetchOnly) {
+                        entityField.setFetchOnly(true);
+                    } else if (annotation instanceof Unsigned) {
+                        entityField.setUnsigned(true);
+                    } else if (annotation instanceof Nullable) {
+                        Nullable nullable = (Nullable) annotation;
+                        entityField.setNullMode(nullable.value());
+                    } else if (annotation instanceof Limit) {
+                        Limit limit = (Limit) annotation;
+                        entityField.setLength(limit.length());
+                        entityField.setLimitApprehensionMode(limit.apprehension());
+                    } else {
+                        // IGNORE ANNOTATION
+                    }
+                } // end annotation loop
+                fieldList.add(entityField);
+            } // end field loop
+            this.entityInformation.setEntityFields(fieldList);
+        } else {
+            LOG.trace("[ / ] Polarization Process: field annotations already stored.");
         }
 
     }
 
     @Override
     public boolean insert(ConnectionManager con) throws SQLException {
+        LOG.trace("[ RUN ] Insert");
+        //----------------------------------------------------------------------
+        // run entity mapping.
         this.polarisEntityMapping();
+        LOG.trace("");
+        //----------------------------------------------------------------------
+        // get table name.
+        final String tableName = this.entityInformation.getEntityName();
+        LOG.trace("Table Name: {}", tableName);
+        LOG.trace("Operation: {}", "INSERT");
+        //----------------------------------------------------------------------
+        // create insert preamble
+        final String startQuery = this.insertQueryPreamble(tableName);
+        LOG.trace("\t[1] {}", startQuery);
+        // check field values
+        for (PolarisEntityInformation.EntityField entityField : this.entityInformation.getEntityFields()) {
+            Field field = entityField.getField();
+            try {
+                PolarisReflection.getPropertyDescriptor(this.getClass(), field.getName());
+//                Object a = PolarisReflection.invokePropertyWriteMethod(this, field.getName(), null);
+//                LOG.debug("Value: {}", a);
+            } catch (Exception e) {
+                LOG.error("error", e);
+            }
+
+        }
+
+        final String insertConstructor = "(name, name, name)";
+        final String insertValues = "VALUES  (?,?,?)";
 
         return true;
+    }
+
+    public String insertQueryPreamble(String tableName) {
+        return SQL_INSERT + " " + SQL_INTO
+                + " " + SQL_ESCAPE + tableName + SQL_ESCAPE
+                + " ";
     }
 
     @Override
@@ -192,6 +235,11 @@ public class PolarisEntity implements PolarisEntityStructure {
         this.polarisEntityMapping();
 
         return true;
+    }
+
+    @Override
+    protected boolean updateMaster(ConnectionManager con, boolean includeNull) throws SQLException {
+        return super.updateMaster(con, includeNull); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
@@ -221,14 +269,17 @@ public class PolarisEntity implements PolarisEntityStructure {
      * @param builder
      * @return
      * @throws SQLException
+     * @deprecated as of the existence of Polaris Entity Class please use
+     * findSet method.
+     * @see
+     * PolarisEntity#findSet(org.afterschoolcreatives.polaris.java.sql.ConnectionManager,
+     * org.afterschoolcreatives.polaris.java.sql.builder.QueryBuilder)
      */
     @Override
     public <T> List<T> findMany(ConnectionManager con, QueryBuilder builder) throws SQLException {
-        this.findSet(con, builder);
-        return this.getResultSet();
+        return super.findMany(con, builder); //To change body of generated methods, choose Tools | Templates.
     }
 
-    @Override
     public boolean findSet(ConnectionManager con, QueryBuilder builder) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
@@ -238,12 +289,10 @@ public class PolarisEntity implements PolarisEntityStructure {
      *
      * @return A String SQL Statement.
      */
-    @Override
     public String getLastQuery() {
         return this.lastQuery;
     }
 
-    @Override
     public <T> T createCopy() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
@@ -255,7 +304,6 @@ public class PolarisEntity implements PolarisEntityStructure {
      * @param <T>
      * @return
      */
-    @Override
     public <T> List<T> getResultSet() {
         return this.resultSet;
     }

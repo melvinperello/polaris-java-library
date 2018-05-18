@@ -57,7 +57,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author Jhon Melvin
  */
-public class PolarisRecord implements PolarisRecordInterface {
+public class PolarisRecord {
 
     //--------------------------------------------------------------------------
     // logger instance
@@ -133,7 +133,6 @@ public class PolarisRecord implements PolarisRecordInterface {
      * @param con Connection Manager that will be used.
      * @throws SQLException if there was an error in inserting the data.
      */
-    @Override
     public boolean insert(ConnectionManager con) throws SQLException {
         /**
          * Reflection.
@@ -284,7 +283,7 @@ public class PolarisRecord implements PolarisRecordInterface {
      * @return true if there are records affected false if none.
      * @throws SQLException if failed to execute.
      */
-    private boolean updateMaster(ConnectionManager con, boolean includeNull) throws SQLException {
+    protected boolean updateMaster(ConnectionManager con, boolean includeNull) throws SQLException {
         /**
          * Reflection.
          */
@@ -408,7 +407,6 @@ public class PolarisRecord implements PolarisRecordInterface {
      * @return true if there are records affected false if none.
      * @throws SQLException if failed to execute.
      */
-    @Override
     public boolean update(ConnectionManager con) throws SQLException {
         return updateMaster(con, false);
     }
@@ -421,7 +419,6 @@ public class PolarisRecord implements PolarisRecordInterface {
      * @return true if there are records affected false if none.
      * @throws SQLException SQLException if failed to execute.
      */
-    @Override
     public boolean updateFull(ConnectionManager con) throws SQLException {
         return updateMaster(con, true);
     }
@@ -436,7 +433,6 @@ public class PolarisRecord implements PolarisRecordInterface {
      * record.
      * @throws SQLException if failed to execute.
      */
-    @Override
     public boolean delete(ConnectionManager con) throws SQLException {
         /**
          * Reflection.
@@ -503,7 +499,6 @@ public class PolarisRecord implements PolarisRecordInterface {
     //--------------------------------------------------------------------------
     // sqlSelect METHODS.
     //--------------------------------------------------------------------------
-    @Override
     public boolean find(ConnectionManager con, Object id) throws SQLException {
         /**
          * Reflection.
@@ -577,7 +572,6 @@ public class PolarisRecord implements PolarisRecordInterface {
         return true;
     }
 
-    @Override
     public boolean findQuery(ConnectionManager con, QueryBuilder builder) throws SQLException {
         /**
          * Reflection.
@@ -608,7 +602,6 @@ public class PolarisRecord implements PolarisRecordInterface {
         return true;
     }
 
-    @Override
     public <T> List<T> findMany(ConnectionManager con, QueryBuilder builder) throws SQLException {
         // create list holder
         List<T> list = new ArrayList<>();
@@ -839,7 +832,7 @@ public class PolarisRecord implements PolarisRecordInterface {
          * @return list of fields with values and specifications.
          *
          */
-        public static ArrayList<DatabaseFields> reflect(PolarisRecordInterface model) {
+        public static ArrayList<DatabaseFields> reflect(PolarisRecord model) {
             String tableName = null;
 //            String tableName = null;
             int primaryKeyCount = 0; // declare 0 pk counts
@@ -927,7 +920,7 @@ public class PolarisRecord implements PolarisRecordInterface {
          * @param model
          *
          */
-        private static void readModelAnnotations(PolarisRecordInterface model, DatabaseFields pma) {
+        private static void readModelAnnotations(PolarisRecord model, DatabaseFields pma) {
             Annotation[] annotations = model.getClass().getAnnotations();
             for (Annotation annotation : annotations) {
                 if (annotation instanceof Table) {

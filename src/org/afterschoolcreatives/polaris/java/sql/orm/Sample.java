@@ -40,23 +40,20 @@ import org.afterschoolcreatives.polaris.java.sql.orm.annotations.Unsigned;
  * @author Jhon Melvin
  */
 @Table("student")
-public class Sample extends PolarisEntity {
-
-    @Column("name")
-    @PrimaryKey
-    @FetchOnly
-    @Unsigned
-    @Nullable(Nullable.Mode.NULL_IS_BLANK)
-    @Limit(length = 150, apprehension = Limit.Apprehension.CHOP)
-    public String studentName;
+public class Sample {
 
     public static void main(String[] args) {
 
-        Sample sample = new Sample();
         try {
+            ScholarInformationModel sample = new ScholarInformationModel();
+             sample.insert(null);
+//            for (int x = 0; x < 1000000; x++) {
+//
+//               
+//            }
 
-            sample.insert(null);
-            sample.update(null);
+//                sample.update(null);
+//                sample.insert(null);
         } catch (SQLException ex) {
 
 //            Logger.getLogger(Sample.class.getName()).log(Level.SEVERE, null, ex);

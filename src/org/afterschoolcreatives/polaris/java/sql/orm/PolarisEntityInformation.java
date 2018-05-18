@@ -78,6 +78,14 @@ public class PolarisEntityInformation {
 
         public EntityField() {
             //
+            this.field = null;
+            this.columnName = null;
+            this.primaryKey = false;
+            this.fetchOnly = false;
+            this.length = 0;
+            this.limitApprehensionMode = null;
+            this.nullMode = null;
+            this.unsigned = false;
         }
 
         private Field field;

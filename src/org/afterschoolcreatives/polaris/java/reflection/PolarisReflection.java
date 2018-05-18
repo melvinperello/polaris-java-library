@@ -29,9 +29,7 @@ import java.beans.IntrospectionException;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.security.AccessController;
 import java.security.PrivilegedActionException;
-import java.security.PrivilegedExceptionAction;
 
 /**
  *
@@ -68,17 +66,17 @@ public class PolarisReflection {
             throw new NullPointerException("Write method does not exist");
         }
         //----------------------------------------------------------------------
-        // Make the write method accessible.
-        if (!writeMethod.isAccessible()) {
-            try {
-                AccessController.doPrivileged((PrivilegedExceptionAction<Object>) () -> {
-                    writeMethod.setAccessible(true);
-                    return null;
-                });
-            } catch (PrivilegedActionException ex) {
-                throw ex;
-            }
-        }
+//        // Make the write method accessible.
+//        if (!writeMethod.isAccessible()) {
+//            try {
+//                AccessController.doPrivileged((PrivilegedExceptionAction<Object>) () -> {
+//                    writeMethod.setAccessible(true);
+//                    return null;
+//                });
+//            } catch (PrivilegedActionException ex) {
+//                throw ex;
+//            }
+//        }
         // invoke method
         return writeMethod.invoke(hostObject, propertyValue);
     }
@@ -100,17 +98,17 @@ public class PolarisReflection {
         PropertyDescriptor propDescriptor = getPropertyDescriptor(hostObject.getClass(), propertyName);
         Method readMethod = propDescriptor.getReadMethod();
         //----------------------------------------------------------------------
-        // Make the write method accessible.
-        if (!readMethod.isAccessible()) {
-            try {
-                AccessController.doPrivileged((PrivilegedExceptionAction<Object>) () -> {
-                    readMethod.setAccessible(true);
-                    return null;
-                });
-            } catch (PrivilegedActionException ex) {
-                throw ex;
-            }
-        }
+//        // Make the write method accessible.
+//        if (!readMethod.isAccessible()) {
+//            try {
+//                AccessController.doPrivileged((PrivilegedExceptionAction<Object>) () -> {
+//                    readMethod.setAccessible(true);
+//                    return null;
+//                });
+//            } catch (PrivilegedActionException ex) {
+//                throw ex;
+//            }
+//        }
         // invoke method
         return readMethod.invoke(hostObject);
     }
