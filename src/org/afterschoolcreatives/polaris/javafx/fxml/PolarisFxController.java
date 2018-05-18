@@ -38,9 +38,9 @@ import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 import javafx.stage.Window;
-import org.afterschoolcreatives.polaris.java.exceptions.PolarisFxLoadingException;
-import org.afterschoolcreatives.polaris.java.exceptions.PolarisNoSceneException;
-import org.afterschoolcreatives.polaris.java.exceptions.PolarisNoStageException;
+import org.afterschoolcreatives.polaris.java.exceptions.NoSceneException;
+import org.afterschoolcreatives.polaris.java.exceptions.NoStageException;
+import org.afterschoolcreatives.polaris.java.exceptions.PolarisRuntimeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -137,9 +137,9 @@ public abstract class PolarisFxController implements Initializable {
             // load the FXML
             this.root = fxmlLoader.load();
         } catch (IOException ex) {
-            throw new PolarisFxLoadingException("Cannot load FXML [IO EXCEPTION]", ex);
+            throw new PolarisRuntimeException("Cannot load FXML [IO EXCEPTION]", ex);
         } catch (IllegalStateException ie) {
-            throw new PolarisFxLoadingException("Cannot load FXML [Illegal State Exception]", ie);
+            throw new PolarisRuntimeException("Cannot load FXML [Illegal State Exception]", ie);
         }
 
         // call setup
@@ -171,12 +171,12 @@ public abstract class PolarisFxController implements Initializable {
      * Retrieves this Node's Parent Scene.
      *
      * @return Scene
-     * @throws PolarisNoSceneException if there is no scene.
+     * @throws NoSceneException if there is no scene.
      */
-    public Scene getScene() throws PolarisNoSceneException {
+    public Scene getScene() throws NoSceneException {
         Scene scene = this.<Parent>getRoot().getScene();
         if (scene == null) {
-            throw new PolarisNoSceneException("This node is not part of any Scene.");
+            throw new NoSceneException("This node is not part of any Scene.");
         }
         return scene;
     }
@@ -184,18 +184,18 @@ public abstract class PolarisFxController implements Initializable {
     /**
      *
      * @return Stage
-     * @throws PolarisNoSceneException if there is no scene.
-     * @throws PolarisNoStageException if there is no stage.
+     * @throws NoSceneException if there is no scene.
+     * @throws NoStageException if there is no stage.
      */
-    public Stage getStage() throws PolarisNoSceneException, PolarisNoStageException, ClassCastException {
+    public Stage getStage() throws NoSceneException, NoStageException, ClassCastException {
         Window window = this.getScene().getWindow();
         if (window == null) {
-            throw new PolarisNoStageException("This scene is not part of any Window.");
+            throw new NoStageException("This scene is not part of any Window.");
         }
         try {
             return (Stage) this.getScene().getWindow();
         } catch (ClassCastException e) {
-            throw new ClassCastException("Cannot this window into a stage.");
+            throw new ClassCastException("Cannot cast this window into a stage.");
         }
     }
 
@@ -203,10 +203,10 @@ public abstract class PolarisFxController implements Initializable {
      * Changes the root of the currently active scene.
      *
      * @param newRoot the new root.
-     * @throws PolarisNoSceneException if there is no scene.
-     * @throws PolarisNoStageException if there is no stage.
+     * @throws NoSceneException if there is no scene.
+     * @throws NoStageException if there is no stage.
      */
-    public void changeRoot(Parent newRoot) throws PolarisNoSceneException, PolarisNoStageException {
+    public void changeRoot(Parent newRoot) throws NoSceneException, NoStageException {
         Stage currentStage = this.getStage();
         this.getRootPane().setPrefWidth(currentStage.getWidth());
         this.getRootPane().setPrefHeight(currentStage.getHeight());

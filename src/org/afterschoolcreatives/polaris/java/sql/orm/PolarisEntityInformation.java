@@ -78,7 +78,7 @@ public class PolarisEntityInformation {
 
         public EntityField() {
             //
-            this.field = null;
+            this.fieldName = null;
             this.columnName = null;
             this.primaryKey = false;
             this.fetchOnly = false;
@@ -88,7 +88,7 @@ public class PolarisEntityInformation {
             this.unsigned = false;
         }
 
-        private Field field;
+        private String fieldName;
         private String columnName;
         private boolean primaryKey;
         private boolean fetchOnly;
@@ -100,8 +100,8 @@ public class PolarisEntityInformation {
         //----------------------------------------------------------------------
         // Entity Field Setters.
         //----------------------------------------------------------------------
-        public void setField(Field field) {
-            this.field = field;
+        public void setFieldName(String fieldName) {
+            this.fieldName = fieldName;
         }
 
         public void setColumnName(String columnName) {
@@ -135,8 +135,8 @@ public class PolarisEntityInformation {
         //----------------------------------------------------------------------
         // Entity Field Getters.
         //----------------------------------------------------------------------
-        public Field getField() {
-            return field;
+        public String getFieldName() {
+            return fieldName;
         }
 
         public String getColumnName() {

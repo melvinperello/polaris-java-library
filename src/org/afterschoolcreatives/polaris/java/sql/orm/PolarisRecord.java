@@ -34,8 +34,6 @@ import java.lang.reflect.Method;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-
-import org.afterschoolcreatives.polaris.java.exceptions.PolarisReflectionException.InvalidAnnotationException;
 import org.afterschoolcreatives.polaris.java.exceptions.PolarisRuntimeException;
 import org.afterschoolcreatives.polaris.java.sql.ConnectionManager;
 import org.afterschoolcreatives.polaris.java.sql.DataRow;
@@ -100,7 +98,7 @@ public class PolarisRecord {
     /**
      * Uses reflection to introspect the model.
      */
-    private void reflect() throws InvalidAnnotationException {
+    private void reflect() throws PolarisRuntimeException {
         /**
          * Use Reflections to get the field data.
          */
@@ -109,7 +107,7 @@ public class PolarisRecord {
          * If there is no fields throw an exception.
          */
         if (locFields.isEmpty()) {
-            throw new InvalidAnnotationException("No Fields are Annotated and cannot be recognized.");
+            throw new PolarisRuntimeException("No Fields are Annotated and cannot be recognized.");
         }
         /**
          * Get the table name from the first entry.
@@ -369,11 +367,11 @@ public class PolarisRecord {
          * Create Where Clause if has primary key.
          */
         if (primaryKeyData == null) {
-            throw new InvalidAnnotationException("Cannot update model no field is assigned as primary key or annotated with @PrimaryKey");
+            throw new PolarisRuntimeException("Cannot update model no field is assigned as primary key or annotated with @PrimaryKey");
         }
 
         if (primaryKeyData.getFieldValue() == null) {
-            throw new InvalidAnnotationException("Cannot update model when primary key value is null");
+            throw new PolarisRuntimeException("Cannot update model when primary key value is null");
         }
         /**
          * Created Where Clause.
@@ -471,11 +469,11 @@ public class PolarisRecord {
          * Check Primary Key.
          */
         if (primaryKeyData == null) {
-            throw new InvalidAnnotationException("Cannot Execute Delete: No Field is Annotated as Primary Key.");
+            throw new PolarisRuntimeException("Cannot Execute Delete: No Field is Annotated as Primary Key.");
         }
 
         if (primaryKeyData.getFieldValue() == null) {
-            throw new InvalidAnnotationException("Cannot Execute Delete: Primary Key Value is Null.");
+            throw new PolarisRuntimeException("Cannot Execute Delete: Primary Key Value is Null.");
         }
 
         /**
@@ -538,7 +536,7 @@ public class PolarisRecord {
          * Check Primary Key.
          */
         if (primaryKeyData == null) {
-            throw new InvalidAnnotationException("Cannot Retrieve Records: No Field is Annotated as Primary Key.");
+            throw new PolarisRuntimeException("Cannot Retrieve Records: No Field is Annotated as Primary Key.");
         }
 
         /**
@@ -875,7 +873,7 @@ public class PolarisRecord {
                     /**
                      * Throw runtime error.
                      */
-                    throw new InvalidAnnotationException("Unable to set the generated key." + field.getName(), e);
+                    throw new PolarisRuntimeException("Unable to set the generated key." + field.getName(), e);
                 }
                 /**
                  * Get the data type.
@@ -898,7 +896,7 @@ public class PolarisRecord {
                             /**
                              * Throw error if primary key is more than one.
                              */
-                            throw new InvalidAnnotationException("Primary Key Annotation must be only used once.");
+                            throw new PolarisRuntimeException("Primary Key Annotation must be only used once.");
                         }
                     }
 

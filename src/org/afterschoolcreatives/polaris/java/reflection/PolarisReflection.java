@@ -54,11 +54,10 @@ public class PolarisReflection {
      * @throws IllegalAccessException
      * @throws IllegalArgumentException
      * @throws InvocationTargetException
-     * @throws java.security.PrivilegedActionException
      */
     public static Object invokePropertyWriteMethod(Object hostObject, String propertyName, Object propertyValue)
             throws IntrospectionException, IllegalAccessException,
-            IllegalArgumentException, InvocationTargetException, PrivilegedActionException {
+            IllegalArgumentException, InvocationTargetException {
         PropertyDescriptor propDescriptor = getPropertyDescriptor(hostObject.getClass(), propertyName);
         Method writeMethod = propDescriptor.getWriteMethod();
         //----------------------------------------------------------------------
@@ -92,9 +91,8 @@ public class PolarisReflection {
      * @throws IllegalAccessException
      * @throws IllegalArgumentException
      * @throws InvocationTargetException
-     * @throws java.security.PrivilegedActionException
      */
-    public static Object invokePropertyReadMethod(Object hostObject, String propertyName) throws IntrospectionException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, PrivilegedActionException {
+    public static Object invokePropertyReadMethod(Object hostObject, String propertyName) throws IntrospectionException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
         PropertyDescriptor propDescriptor = getPropertyDescriptor(hostObject.getClass(), propertyName);
         Method readMethod = propDescriptor.getReadMethod();
         //----------------------------------------------------------------------

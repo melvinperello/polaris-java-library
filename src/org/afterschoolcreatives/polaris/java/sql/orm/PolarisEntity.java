@@ -25,12 +25,14 @@
  */
 package org.afterschoolcreatives.polaris.java.sql.orm;
 
+import java.beans.IntrospectionException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import org.afterschoolcreatives.polaris.java.exceptions.PolarisReflectionException;
+import org.afterschoolcreatives.polaris.java.exceptions.PolarisRuntimeException;
 import org.afterschoolcreatives.polaris.java.reflection.PolarisAnnotatedClass;
 import org.afterschoolcreatives.polaris.java.reflection.PolarisReflection;
 import org.afterschoolcreatives.polaris.java.sql.ConnectionManager;
@@ -42,6 +44,7 @@ import org.afterschoolcreatives.polaris.java.sql.orm.annotations.Nullable;
 import org.afterschoolcreatives.polaris.java.sql.orm.annotations.PrimaryKey;
 import org.afterschoolcreatives.polaris.java.sql.orm.annotations.Table;
 import org.afterschoolcreatives.polaris.java.sql.orm.annotations.Unsigned;
+import org.afterschoolcreatives.polaris.java.util.StringTools;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -142,7 +145,7 @@ public class PolarisEntity extends PolarisRecord {
                 //--------------------------------------------------------------
             }
             if (this.entityInformation.getEntityName() == null) {
-                throw new PolarisReflectionException.MissingAnnotationException(Table.class.getName() + " was not found");
+                throw new PolarisRuntimeException(Table.class.getName() + " Table annotation was not found");
             }
         } else {
             LOG.trace("[ / ] Polarization Process: table name already stored.");
@@ -155,7 +158,7 @@ public class PolarisEntity extends PolarisRecord {
             List<PolarisEntityInformation.EntityField> fieldList = new ArrayList<>();
             for (Field annotatedField : this.entityInformation.getAnnotatedStructure().getAnnotatedFields()) {
                 PolarisEntityInformation.EntityField entityField = new PolarisEntityInformation.EntityField();
-                entityField.setField(annotatedField);
+                entityField.setFieldName(annotatedField.getName());
                 LOG.trace("Field found: {}", annotatedField.getName());
                 LOG.trace("\tType: {}", annotatedField.getType());
                 for (Annotation annotation : annotatedField.getAnnotations()) {
@@ -206,21 +209,79 @@ public class PolarisEntity extends PolarisRecord {
         final String startQuery = this.insertQueryPreamble(tableName);
         LOG.trace("\t[1] {}", startQuery);
         // check field values
+        final List<String> constructFields = new ArrayList<>();
+        final List<Object> insertParameters = new ArrayList<>();
         for (PolarisEntityInformation.EntityField entityField : this.entityInformation.getEntityFields()) {
-            Field field = entityField.getField();
-            try {
-                PolarisReflection.getPropertyDescriptor(this.getClass(), field.getName());
-//                Object a = PolarisReflection.invokePropertyWriteMethod(this, field.getName(), null);
-//                LOG.debug("Value: {}", a);
-            } catch (Exception e) {
-                LOG.error("error", e);
+            //------------------------------------------------------------------
+            String fieldName = entityField.getFieldName();
+            /**
+             * If the values is for fetching only skip this.
+             */
+            if (entityField.isFetchOnly()) {
+                LOG.trace("\t\t{} -> is for read only, skipping this in constructor.", fieldName);
+                continue;
             }
 
+            try {
+                Object value = PolarisReflection.invokePropertyReadMethod(this, fieldName);
+                if (value == null) {
+                    if (entityField.isPrimaryKey()) {
+                        throw new PolarisRuntimeException(this.getClass().getName() + " -> " + fieldName + " : is declared as primary key and must not be null");
+                    } else {
+                        LOG.trace("\t\t{} -> is null, skipping this in constructor.", fieldName);
+                        continue;
+                    }
+                }
+
+                LOG.debug("\t\t{} ->  {}", fieldName, String.valueOf(value));
+                constructFields.add(entityField.getColumnName());
+                insertParameters.add(value);
+            } catch (IntrospectionException ex) {
+                /**
+                 * if an exception occurs during introspection
+                 */
+                LOG.error("IntrospectionException", ex);
+            } catch (IllegalAccessException ex) {
+                /**
+                 * if this Method object is enforcing Java language access
+                 * control and the underlying method is inaccessible.
+                 */
+                LOG.error("IllegalAccessException", ex);
+            } catch (IllegalArgumentException ex) {
+                /**
+                 * if the method is an instance method and the specified object
+                 * argument is not an instance of the class or interface
+                 * declaring the underlying method (or of a subclass or
+                 * implementor thereof); if the number of actual and formal
+                 * parameters differ; if an unwrapping conversion for primitive
+                 * arguments fails; or if, after possible unwrapping, a
+                 * parameter value cannot be converted to the corresponding
+                 * formal parameter type by a method invocation conversion.
+                 */
+                LOG.error("IllegalArgumentException", ex);
+            } catch (InvocationTargetException ex) {
+                /**
+                 * If the method itself throws an exception.
+                 */
+                LOG.error("InvocationTargetException", ex);
+            }
         }
+        final String insertConstructor = this.insertConstructor(constructFields.toArray(new String[constructFields.size()]));
 
-        final String insertConstructor = "(name, name, name)";
-        final String insertValues = "VALUES  (?,?,?)";
+        LOG.trace("\t[2] {}", insertConstructor);
 
+        final String insertParam = this.insertParameters(insertParameters.size());
+        LOG.trace("\t[3] {}", insertParam);
+
+        final String generatedQuery = startQuery + insertConstructor + " " + SQL_VALUES + " " + insertParam + ";";
+        final String executeQuery = StringTools.clearExtraSpaces(generatedQuery);
+        LOG.trace("\t[Q] {}", executeQuery);
+
+        /**
+         * Execute Query. the generated key will be null if no keys are
+         * generated.
+         */
+        // Object generatedKey = con.insert(executeQuery, insertParameters.toArray());
         return true;
     }
 
@@ -230,16 +291,43 @@ public class PolarisEntity extends PolarisRecord {
                 + " ";
     }
 
-    @Override
-    public boolean update(ConnectionManager con) throws SQLException {
-        this.polarisEntityMapping();
+    public String insertConstructor(String[] constructorFields) {
+        final StringBuilder constructorBuilder = new StringBuilder("(");
+        for (String constructorField : constructorFields) {
+            String fieldName = SQL_ESCAPE + constructorField + SQL_ESCAPE;
+            constructorBuilder.append(fieldName);
+            constructorBuilder.append(",");
+        }
+        if (constructorBuilder.charAt(constructorBuilder.length() - 1) == ',') {
+            constructorBuilder.deleteCharAt(constructorBuilder.length() - 1);
+        }
+        constructorBuilder.append(")");
+        return constructorBuilder.toString();
+    }
 
-        return true;
+    public String insertParameters(int parameterCount) {
+        final StringBuilder paramBuilder = new StringBuilder("(");
+        for (int ctr = 0; ctr < parameterCount; ctr++) {
+            paramBuilder.append("?");
+            paramBuilder.append(",");
+        }
+        if (paramBuilder.charAt(paramBuilder.length() - 1) == ',') {
+            paramBuilder.deleteCharAt(paramBuilder.length() - 1);
+        }
+        paramBuilder.append(")");
+        return paramBuilder.toString();
     }
 
     @Override
     protected boolean updateMaster(ConnectionManager con, boolean includeNull) throws SQLException {
         return super.updateMaster(con, includeNull); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public boolean update(ConnectionManager con) throws SQLException {
+        this.polarisEntityMapping();
+
+        return true;
     }
 
     @Override

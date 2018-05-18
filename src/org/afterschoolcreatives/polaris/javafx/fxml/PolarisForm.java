@@ -29,8 +29,8 @@ import java.util.Optional;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.stage.Stage;
-import org.afterschoolcreatives.polaris.java.exceptions.PolarisNoSceneException;
-import org.afterschoolcreatives.polaris.java.exceptions.PolarisNoStageException;
+import org.afterschoolcreatives.polaris.java.exceptions.NoSceneException;
+import org.afterschoolcreatives.polaris.java.exceptions.NoStageException;
 import org.afterschoolcreatives.polaris.javafx.scene.control.PolarisDialog;
 
 /**
@@ -59,7 +59,7 @@ public abstract class PolarisForm extends PolarisFxController {
 
         try {
             stage = this.getStage();
-        } catch (ClassCastException | PolarisNoSceneException | PolarisNoStageException ex) {
+        } catch (ClassCastException | NoSceneException | NoStageException ex) {
             stage = null;
         }
 
@@ -145,7 +145,7 @@ public abstract class PolarisForm extends PolarisFxController {
 
         try {
             stage = this.getStage();
-        } catch (ClassCastException | PolarisNoSceneException | PolarisNoStageException e) {
+        } catch (ClassCastException | NoSceneException | NoStageException e) {
             stage = null;
         }
 

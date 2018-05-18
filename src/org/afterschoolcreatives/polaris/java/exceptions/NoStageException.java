@@ -29,17 +29,17 @@ package org.afterschoolcreatives.polaris.java.exceptions;
  *
  * @author Jhon Melvin
  */
-public class PolarisNoSceneException extends PolarisRuntimeException {
+public class NoStageException extends PolarisRuntimeException {
 
-    public PolarisNoSceneException(String message) {
+    public NoStageException(String message) {
         super(message);
     }
 
-    public PolarisNoSceneException(String message, Throwable cause) {
+    public NoStageException(String message, Throwable cause) {
         super(message, cause);
     }
 
-    public PolarisNoSceneException(Throwable cause) {
+    public NoStageException(Throwable cause) {
         super(cause);
     }
 }

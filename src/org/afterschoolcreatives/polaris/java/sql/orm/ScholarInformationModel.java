@@ -240,7 +240,81 @@ public class ScholarInformationModel extends PolarisEntity {
     public String getStudentProvince() {
         return studentProvince;
     }
-    
-    
+
+    public void setScholarId(String scholarId) {
+        this.scholarId = scholarId;
+    }
+
+    public void setStudentNumber(String studentNumber) {
+        this.studentNumber = studentNumber;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public void setMiddleName(String middleName) {
+        this.middleName = middleName;
+    }
+
+    public void setExtName(String extName) {
+        this.extName = extName;
+    }
+
+    public void setGender(String gender) {
+        this.gender = gender;
+    }
+
+    public void setScholarType(Integer scholarType) {
+        this.scholarType = scholarType;
+    }
+
+    public void setMeritType(Integer meritType) {
+        this.meritType = meritType;
+    }
+
+    public void setCourse(String course) {
+        this.course = course;
+    }
+
+    public void setYear(Integer year) {
+        this.year = year;
+    }
+
+    public void setSection(String section) {
+        this.section = section;
+    }
+
+    public void setUniversity(String university) {
+        this.university = university;
+    }
+
+    public void setMobileNo(String mobileNo) {
+        this.mobileNo = mobileNo;
+    }
+
+    public void setTelNo(String telNo) {
+        this.telNo = telNo;
+    }
+
+    public void setMail(String mail) {
+        this.mail = mail;
+    }
+
+    public void setStudentAddress(String studentAddress) {
+        this.studentAddress = studentAddress;
+    }
+
+    public void setStudentCityMunicipality(String studentCityMunicipality) {
+        this.studentCityMunicipality = studentCityMunicipality;
+    }
+
+    public void setStudentProvince(String studentProvince) {
+        this.studentProvince = studentProvince;
+    }
 
 }

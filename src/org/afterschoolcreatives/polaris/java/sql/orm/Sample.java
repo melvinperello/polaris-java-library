@@ -26,14 +26,7 @@
 package org.afterschoolcreatives.polaris.java.sql.orm;
 
 import java.sql.SQLException;
-import org.afterschoolcreatives.polaris.java.sql.ConnectionFactory;
-import org.afterschoolcreatives.polaris.java.sql.orm.annotations.Column;
-import org.afterschoolcreatives.polaris.java.sql.orm.annotations.FetchOnly;
-import org.afterschoolcreatives.polaris.java.sql.orm.annotations.Nullable;
-import org.afterschoolcreatives.polaris.java.sql.orm.annotations.PrimaryKey;
 import org.afterschoolcreatives.polaris.java.sql.orm.annotations.Table;
-import org.afterschoolcreatives.polaris.java.sql.orm.annotations.Limit;
-import org.afterschoolcreatives.polaris.java.sql.orm.annotations.Unsigned;
 
 /**
  *
@@ -46,7 +39,9 @@ public class Sample {
 
         try {
             ScholarInformationModel sample = new ScholarInformationModel();
-             sample.insert(null);
+            sample.setScholarId("asd");
+            sample.insert(null);
+            sample.insert(null);
 //            for (int x = 0; x < 1000000; x++) {
 //
 //               
