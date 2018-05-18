@@ -48,12 +48,23 @@ public class ConnectionManager implements AutoCloseable {
     private final Connection connection;
 
     /**
+     * Connection Driver. additional Meta Data.
+     */
+    private final ConnectionFactory.Driver connectionDriver;
+
+    /**
      * Constructor with passed connection instance.
      *
+     * @param connectionDriver
      * @param connection
      */
-    public ConnectionManager(Connection connection) {
+    public ConnectionManager(ConnectionFactory.Driver connectionDriver, Connection connection) {
         this.connection = connection;
+        this.connectionDriver = connectionDriver;
+    }
+
+    public ConnectionFactory.Driver getConnectionDriver() {
+        return connectionDriver;
     }
 
     //--------------------------------------------------------------------------
@@ -254,6 +265,7 @@ public class ConnectionManager implements AutoCloseable {
     /**
      * Inserts a new Record to the database.
      *
+     * @param <T>
      * @param query SQL Statement.
      * @param parameters Parameters.
      * @return The first insert Auto Generated keys if there is any. NONE if

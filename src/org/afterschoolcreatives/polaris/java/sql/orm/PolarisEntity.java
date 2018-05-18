@@ -35,6 +35,7 @@ import java.util.List;
 import org.afterschoolcreatives.polaris.java.exceptions.PolarisRuntimeException;
 import org.afterschoolcreatives.polaris.java.reflection.PolarisAnnotatedClass;
 import org.afterschoolcreatives.polaris.java.reflection.PolarisReflection;
+import org.afterschoolcreatives.polaris.java.sql.ConnectionFactory;
 import org.afterschoolcreatives.polaris.java.sql.ConnectionManager;
 import org.afterschoolcreatives.polaris.java.sql.builder.QueryBuilder;
 import org.afterschoolcreatives.polaris.java.sql.orm.annotations.Column;
@@ -59,7 +60,6 @@ public class PolarisEntity extends PolarisRecord {
     private static final Logger LOG = LoggerFactory.getLogger(PolarisEntity.class);
     //--------------------------------------------------------------------------
     // SQL KEY WORDS.
-    private final static String SQL_ESCAPE = "`"; // used when using reserved words
     private final static String SQL_INSERT = "INSERT"; // insert keyword
     private final static String SQL_INTO = "INTO";
     private final static String SQL_VALUES = "VALUES";
@@ -70,6 +70,8 @@ public class PolarisEntity extends PolarisRecord {
     private final static String SQL_FROM = "FROM";
     private final static String SQL_SELECT = "SELECT";
     private final static String SQL_LIMIT = "LIMIT";
+    //--------------------------------------------------------------------------
+    private String sqlReserveEscape; // used when using reserved words
     //--------------------------------------------------------------------------
     // CORE DATA.
 
@@ -82,10 +84,34 @@ public class PolarisEntity extends PolarisRecord {
      * PUBLIC CONSTRUCTOR.
      */
     public PolarisEntity() {
+        this.sqlReserveEscape = "";
         // Create Entity Information Holder.
         this.entityInformation = null;
         this.lastQuery = "";
         this.resultSet = null;
+    }
+
+    /**
+     * If you are using a reserve word this will add an escape character so that
+     * the query generation will not encounter an error when using reserve
+     * words.
+     *
+     * @param connectionDriver
+     */
+    private void enableKeywordEscape(ConnectionFactory.Driver connectionDriver) {
+        switch (connectionDriver) {
+            case SQLite:
+            case MariaDB:
+            case MySQL:
+                this.sqlReserveEscape = "`";
+                break;
+            case PostgreSQL:
+                this.sqlReserveEscape = "\"";
+                break;
+            default:
+                this.sqlReserveEscape = "";
+                break;
+        }
     }
 
     private void polarisEntityMapping() {
@@ -194,6 +220,10 @@ public class PolarisEntity extends PolarisRecord {
 
     @Override
     public boolean insert(ConnectionManager con) throws SQLException {
+        //----------------------------------------------------------------------
+        // Dynamic Reserve Word Escape.
+        this.enableKeywordEscape(con.getConnectionDriver());
+        //----------------------------------------------------------------------
         LOG.trace("[ RUN ] Insert");
         //----------------------------------------------------------------------
         // run entity mapping.
@@ -233,20 +263,22 @@ public class PolarisEntity extends PolarisRecord {
                     }
                 }
 
-                LOG.debug("\t\t{} ->  {}", fieldName, String.valueOf(value));
+                LOG.trace("\t\t{} ->  {}", fieldName, String.valueOf(value));
                 constructFields.add(entityField.getColumnName());
                 insertParameters.add(value);
             } catch (IntrospectionException ex) {
                 /**
                  * if an exception occurs during introspection
                  */
-                LOG.error("IntrospectionException", ex);
+//                LOG.error("IntrospectionException", ex);
+                throw new PolarisRuntimeException("An exception has occured while inspecting the field", ex);
             } catch (IllegalAccessException ex) {
                 /**
                  * if this Method object is enforcing Java language access
                  * control and the underlying method is inaccessible.
                  */
-                LOG.error("IllegalAccessException", ex);
+//                LOG.error("IllegalAccessException", ex);
+                throw new PolarisRuntimeException("The method is not accessible, make it public maybe ?", ex);
             } catch (IllegalArgumentException ex) {
                 /**
                  * if the method is an instance method and the specified object
@@ -258,12 +290,14 @@ public class PolarisEntity extends PolarisRecord {
                  * parameter value cannot be converted to the corresponding
                  * formal parameter type by a method invocation conversion.
                  */
-                LOG.error("IllegalArgumentException", ex);
+//                LOG.error("IllegalArgumentException", ex);
+                throw new PolarisRuntimeException("Cannot invoke the method with incorrect arguments", ex);
             } catch (InvocationTargetException ex) {
                 /**
                  * If the method itself throws an exception.
                  */
-                LOG.error("InvocationTargetException", ex);
+//                LOG.error("InvocationTargetException", ex);
+                throw new PolarisRuntimeException("The method throws an exception.", ex);
             }
         }
         final String insertConstructor = this.insertConstructor(constructFields.toArray(new String[constructFields.size()]));
@@ -273,7 +307,19 @@ public class PolarisEntity extends PolarisRecord {
         final String insertParam = this.insertParameters(insertParameters.size());
         LOG.trace("\t[3] {}", insertParam);
 
-        final String generatedQuery = startQuery + insertConstructor + " " + SQL_VALUES + " " + insertParam + ";";
+        //----------------------------------------------------------------------
+        // May 18, 2018
+        // Dear Diary,
+        // What the FUCK !!!!
+        // Insert statements having return values, ok !!! I was amazed.
+        //----------------------------------------------------------------------
+        String postgresReturn = "";
+        if (con.getConnectionDriver().equals(ConnectionFactory.Driver.PostgreSQL)) {
+            postgresReturn = " RETURNING " + sqlReserveEscape + "scholar_id" + sqlReserveEscape;
+        }
+        //----------------------------------------------------------------------
+
+        final String generatedQuery = startQuery + insertConstructor + " " + SQL_VALUES + " " + insertParam + postgresReturn + ";";
         final String executeQuery = StringTools.clearExtraSpaces(generatedQuery);
         LOG.trace("\t[Q] {}", executeQuery);
 
@@ -281,20 +327,21 @@ public class PolarisEntity extends PolarisRecord {
          * Execute Query. the generated key will be null if no keys are
          * generated.
          */
-        // Object generatedKey = con.insert(executeQuery, insertParameters.toArray());
+        Object generatedKey = con.insert(executeQuery, insertParameters.toArray());
+        LOG.trace("Generated Key: {} -> {}", generatedKey, generatedKey.getClass());
         return true;
     }
 
     public String insertQueryPreamble(String tableName) {
         return SQL_INSERT + " " + SQL_INTO
-                + " " + SQL_ESCAPE + tableName + SQL_ESCAPE
+                + " " + sqlReserveEscape + tableName + sqlReserveEscape
                 + " ";
     }
 
     public String insertConstructor(String[] constructorFields) {
         final StringBuilder constructorBuilder = new StringBuilder("(");
         for (String constructorField : constructorFields) {
-            String fieldName = SQL_ESCAPE + constructorField + SQL_ESCAPE;
+            String fieldName = sqlReserveEscape + constructorField + sqlReserveEscape;
             constructorBuilder.append(fieldName);
             constructorBuilder.append(",");
         }

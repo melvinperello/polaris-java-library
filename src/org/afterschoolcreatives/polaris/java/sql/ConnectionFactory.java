@@ -271,7 +271,7 @@ public class ConnectionFactory {
      */
     public ConnectionManager createConnectionManager() throws SQLException {
         Connection connection = this.createConnection();
-        ConnectionManager connectionManager = new ConnectionManager(connection);
+        ConnectionManager connectionManager = new ConnectionManager(this.connectionDriver, connection);
         return connectionManager;
     }
 

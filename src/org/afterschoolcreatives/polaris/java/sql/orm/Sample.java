@@ -25,7 +25,10 @@
  */
 package org.afterschoolcreatives.polaris.java.sql.orm;
 
+import java.sql.Connection;
 import java.sql.SQLException;
+import org.afterschoolcreatives.polaris.java.sql.ConnectionFactory;
+import org.afterschoolcreatives.polaris.java.sql.ConnectionManager;
 import org.afterschoolcreatives.polaris.java.sql.orm.annotations.Table;
 
 /**
@@ -36,22 +39,23 @@ import org.afterschoolcreatives.polaris.java.sql.orm.annotations.Table;
 public class Sample {
 
     public static void main(String[] args) {
+        ConnectionFactory cf = new ConnectionFactory();
+        cf.setHost("127.0.0.1");
+        cf.setPort("5432");
+        cf.setConnectionDriver(ConnectionFactory.Driver.PostgreSQL);
+        cf.setUsername("postgres");
+        cf.setPassword("root");
+        cf.setDatabaseName("sample");
 
-        try {
-            ScholarInformationModel sample = new ScholarInformationModel();
-            sample.setScholarId("asd");
-            sample.insert(null);
-            sample.insert(null);
-//            for (int x = 0; x < 1000000; x++) {
-//
-//               
-//            }
-
-//                sample.update(null);
-//                sample.insert(null);
-        } catch (SQLException ex) {
-
-//            Logger.getLogger(Sample.class.getName()).log(Level.SEVERE, null, ex);
+        try (ConnectionManager con = cf.createConnectionManager()) {
+            for (int x = 0; x < 2; x++) {
+                ScholarInformationModel sample = new ScholarInformationModel();
+                sample.setFirstName("Melvin");
+                sample.insert(con);
+            }
+        } catch (SQLException sqlEx) {
+            sqlEx.printStackTrace();
         }
+
     }
 }

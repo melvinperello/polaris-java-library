@@ -555,7 +555,7 @@ public class PolarisRecord {
 
         // Check if Empty return false
         if (dr.isEmpty()) {
-            logger.debug("Result is empty.");
+            logger.trace("Result is empty.");
             return false;
         }
 
@@ -585,7 +585,7 @@ public class PolarisRecord {
 
         // Check if Empty return false
         if (dr.isEmpty()) {
-            logger.debug("Result is empty.");
+            logger.trace("Result is empty.");
             return false;
         }
 
@@ -618,7 +618,7 @@ public class PolarisRecord {
 
         // Check if Empty return false
         if (ds.isEmpty()) {
-            logger.debug("Result is empty.");
+            logger.trace("Result is empty.");
             return list; // return an empty list
         }
 

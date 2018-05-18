@@ -28,7 +28,9 @@
  */
 package org.afterschoolcreatives.polaris.java.sql.orm;
 
+import org.afterschoolcreatives.polaris.java.sql.ConnectionFactory;
 import org.afterschoolcreatives.polaris.java.sql.orm.annotations.Column;
+import org.afterschoolcreatives.polaris.java.sql.orm.annotations.FetchOnly;
 import org.afterschoolcreatives.polaris.java.sql.orm.annotations.PrimaryKey;
 import org.afterschoolcreatives.polaris.java.sql.orm.annotations.Table;
 
@@ -86,6 +88,7 @@ public class ScholarInformationModel extends PolarisEntity {
     // 02. Model Fields
     //==========================================================================
     @PrimaryKey
+    @FetchOnly
     @Column(SCHOLAR_ID)
     private String scholarId;
 
