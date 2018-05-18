@@ -33,7 +33,7 @@ import org.afterschoolcreatives.polaris.java.sql.builder.QueryBuilder;
  *
  * @author Jhon Melvin
  */
-public interface PolarisEntityInterface extends PolarisRecordInterface {
+public interface PolarisEntityStructure extends PolarisRecordInterface {
 
     /**
      * Get the last executed query by this instance.
@@ -47,7 +47,7 @@ public interface PolarisEntityInterface extends PolarisRecordInterface {
      * @param <T>
      * @return
      */
-    <T> T mirror();
+    <T> T createCopy();
 
     boolean findSet(ConnectionManager con, QueryBuilder builder);
 

@@ -46,6 +46,7 @@ public class ConnectionFactory {
     public enum Driver {
         MariaDB,
         MySQL,
+        PostgreSQL,
         /**
          * SQLITE JDBC Driver: https://bitbucket.org/xerial/sqlite-jdbc
          */
@@ -219,6 +220,8 @@ public class ConnectionFactory {
                 return "jdbc:mariadb://" + this.host + ":" + this.port + "/" + this.databaseName;
             case MySQL:
                 return "jdbc:mysql://" + this.host + ":" + this.port + "/" + this.databaseName;
+            case PostgreSQL:
+                return "jdbc:postgresql://" + this.host + ":" + this.port + "/" + this.databaseName;
             case SQLite:
                 return "jdbc:sqlite:" + this.SQLiteURL;
             default:

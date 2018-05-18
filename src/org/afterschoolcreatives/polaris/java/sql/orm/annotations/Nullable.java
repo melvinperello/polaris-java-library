@@ -23,43 +23,46 @@
  * SOFTWARE.
  *
  */
-package org.afterschoolcreatives.polaris.java.sql.orm;
+package org.afterschoolcreatives.polaris.java.sql.orm.annotations;
 
-import java.sql.SQLException;
-import org.afterschoolcreatives.polaris.java.sql.ConnectionFactory;
-import org.afterschoolcreatives.polaris.java.sql.orm.annotations.Column;
-import org.afterschoolcreatives.polaris.java.sql.orm.annotations.FetchOnly;
-import org.afterschoolcreatives.polaris.java.sql.orm.annotations.Nullable;
-import org.afterschoolcreatives.polaris.java.sql.orm.annotations.PrimaryKey;
-import org.afterschoolcreatives.polaris.java.sql.orm.annotations.Table;
-import org.afterschoolcreatives.polaris.java.sql.orm.annotations.Limit;
-import org.afterschoolcreatives.polaris.java.sql.orm.annotations.Unsigned;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
  *
  * @author Jhon Melvin
  */
-@Table("student")
-public class Sample extends PolarisEntity {
+@Documented
+@Target(ElementType.FIELD)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface Nullable {
 
-    @Column("name")
-    @PrimaryKey
-    @FetchOnly
-    @Unsigned
-    @Nullable(Nullable.Mode.NULL_IS_BLANK)
-    @Limit(length = 150, apprehension = Limit.Apprehension.CHOP)
-    public String studentName;
-
-    public static void main(String[] args) {
-
-        Sample sample = new Sample();
-        try {
-
-            sample.insert(null);
-            sample.update(null);
-        } catch (SQLException ex) {
-
-//            Logger.getLogger(Sample.class.getName()).log(Level.SEVERE, null, ex);
-        }
+    public enum Mode {
+        /**
+         * Allows Java Null values in the database.
+         */
+        NULL_IS_NULL,
+        /**
+         * Insert Java Null value as blank.
+         *
+         * <ul>
+         * <li>String = ""</li>
+         * <li>Numbers = 0</li>
+         * </ul>
+         *
+         * Other than the above default values this will default to NULL_IS_NULL
+         * mode.
+         */
+        NULL_IS_BLANK,
+        /**
+         * Disallows the Java Null value to be inserted in the database throws
+         * an Exception.
+         */
+        NO_NULL
     }
+
+    Mode value();
 }

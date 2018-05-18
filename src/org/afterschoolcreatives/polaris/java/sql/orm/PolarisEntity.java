@@ -26,13 +26,20 @@
 package org.afterschoolcreatives.polaris.java.sql.orm;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
 import java.sql.SQLException;
 import java.util.List;
 import org.afterschoolcreatives.polaris.java.exceptions.PolarisReflectionException;
 import org.afterschoolcreatives.polaris.java.reflection.PolarisAnnotatedClass;
 import org.afterschoolcreatives.polaris.java.sql.ConnectionManager;
 import org.afterschoolcreatives.polaris.java.sql.builder.QueryBuilder;
+import org.afterschoolcreatives.polaris.java.sql.orm.annotations.Column;
+import org.afterschoolcreatives.polaris.java.sql.orm.annotations.FetchOnly;
+import org.afterschoolcreatives.polaris.java.sql.orm.annotations.Limit;
+import org.afterschoolcreatives.polaris.java.sql.orm.annotations.Nullable;
+import org.afterschoolcreatives.polaris.java.sql.orm.annotations.PrimaryKey;
 import org.afterschoolcreatives.polaris.java.sql.orm.annotations.Table;
+import org.afterschoolcreatives.polaris.java.sql.orm.annotations.Unsigned;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,7 +47,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author Jhon Melvin
  */
-public class PolarisEntity implements PolarisEntityInterface {
+public class PolarisEntity implements PolarisEntityStructure {
 
     //--------------------------------------------------------------------------
     // LOG INSTANCE.
@@ -60,8 +67,8 @@ public class PolarisEntity implements PolarisEntityInterface {
     private final static String SQL_LIMIT = "LIMIT";
     //--------------------------------------------------------------------------
     // CORE DATA.
-    private PolarisAnnotatedClass annotatedStructure;
-    private String databaseTableName;
+
+    private PolarisEntityInformation entityInformation;
     private String lastQuery;
     private List resultSet;
 
@@ -70,16 +77,18 @@ public class PolarisEntity implements PolarisEntityInterface {
      * PUBLIC CONSTRUCTOR.
      */
     public PolarisEntity() {
-        this.annotatedStructure = null;
+        // Create Entity Information Holder.
+        this.entityInformation = null;
         this.lastQuery = "";
         this.resultSet = null;
-
     }
 
-    private void polarisRecordingProcess() {
-        LOG.debug("INVOKED: Polaris Recording Process");
+    private void polarisEntityMapping() {
+        LOG.debug("");
+        LOG.debug("");
+        LOG.debug("[ RUN ] Polaris Entity Mapping Process");
         this.reflectionProcess();
-        this.polarizingProcess();
+        this.polarizationProcess();
     }
 
     /**
@@ -89,12 +98,21 @@ public class PolarisEntity implements PolarisEntityInterface {
      * Gathering of Information about the class.
      */
     private void reflectionProcess() {
-        LOG.debug("INVOKED: Reflection Process");
-        if (this.annotatedStructure == null) {
-            LOG.debug("[ WORK ] Reflection Process");
-            this.annotatedStructure = new PolarisAnnotatedClass(this.getClass());
+        LOG.debug("[ RUN ] 01 - Reflection Process");
+        //----------------------------------------------------------------------
+        if (this.entityInformation == null) {
+            LOG.debug("[ X ] Reflection Process: creating entity information.");
+            this.entityInformation = new PolarisEntityInformation();
         } else {
-            LOG.debug("[ DONE ] Reflection Process");
+            LOG.debug("[ / ] Reflection Process: entity information already exists.");
+        }
+        //----------------------------------------------------------------------
+
+        if (this.entityInformation.getAnnotatedStructure() == null) {
+            LOG.debug("[ X ] Reflection Process: running annotation reader.");
+            this.entityInformation.setAnnotatedStructure(new PolarisAnnotatedClass(this.getClass()));
+        } else {
+            LOG.debug("[ / ] Reflection Process: annotation structure already identified.");
         }
     }
 
@@ -104,37 +122,76 @@ public class PolarisEntity implements PolarisEntityInterface {
      *
      * Converting the class information into a Polaris readable format.
      */
-    private void polarizingProcess() {
-        LOG.debug("INVOKED: Polarizing Process");
-        // Get Table Name
-        if (this.databaseTableName == null) {
-            LOG.debug("[ WORK ] Polarizing Process");
-            for (Annotation classAnnotation : this.annotatedStructure.getClassAnnotations()) {
+    private void polarizationProcess() {
+        LOG.debug("[ RUN ] 02 - Polarization Process");
+        //----------------------------------------------------------------------
+        // Get Table Name.
+        //----------------------------------------------------------------------
+        if (this.entityInformation.getEntityName() == null) {
+            LOG.debug("[ X ] Polarization Process: finding table name.");
+            for (Annotation classAnnotation : this.entityInformation.getAnnotatedStructure().getClassAnnotations()) {
                 //--------------------------------------------------------------
                 // Search Table Annotation.
                 if (classAnnotation instanceof Table) {
                     Table table = (Table) classAnnotation;
-                    this.databaseTableName = table.value();
+                    this.entityInformation.setEntityName(table.value());
                     break;
                 }
                 //--------------------------------------------------------------
             }
-            if (this.databaseTableName == null) {
+            if (this.entityInformation.getEntityName() == null) {
                 throw new PolarisReflectionException.MissingAnnotationException(Table.class.getName() + " was not found");
             }
         } else {
-            LOG.debug("[ DONE ] Polarizing Process");
+            LOG.debug("[ / ] Polarization Process: table name already stored.");
         }
+        //----------------------------------------------------------------------
+        // Get Table Data.
+        //----------------------------------------------------------------------
+        LOG.debug("[ X ] Polarization Process: checking table fields");
+        for (Field annotatedField : this.entityInformation.getAnnotatedStructure().getAnnotatedFields()) {
+            PolarisEntityInformation.EntityField entityField = new PolarisEntityInformation.EntityField();
+            entityField.setField(annotatedField);
+            LOG.debug("Field found: {}", annotatedField.getName());
+            LOG.debug("\tType: {}", annotatedField.getType());
+            for (Annotation annotation : annotatedField.getAnnotations()) {
+                LOG.debug("\t\tAnnotation found: {}", annotation.annotationType().getName());
+                if (annotation instanceof Column) {
+                    Column column = (Column) annotation;
+                    entityField.setColumnName(column.value());
+                } else if (annotation instanceof PrimaryKey) {
+                    entityField.setPrimaryKey(true);
+                } else if (annotation instanceof FetchOnly) {
+                    entityField.setFetchOnly(true);
+                } else if (annotation instanceof Unsigned) {
+                    entityField.setUnsigned(true);
+                } else if (annotation instanceof Nullable) {
+                    Nullable nullable = (Nullable) annotation;
+                    entityField.setNullMode(nullable.value());
+                } else if (annotation instanceof Limit) {
+                    Limit limit = (Limit) annotation;
+                    entityField.setLength(limit.length());
+                    entityField.setLimitApprehensionMode(limit.apprehension());
+                } else {
+                    // IGNORE ANNOTATION
+                }
+            }
+        }
+
     }
 
     @Override
     public boolean insert(ConnectionManager con) throws SQLException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        this.polarisEntityMapping();
+
+        return true;
     }
 
     @Override
     public boolean update(ConnectionManager con) throws SQLException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        this.polarisEntityMapping();
+
+        return true;
     }
 
     @Override
@@ -187,7 +244,7 @@ public class PolarisEntity implements PolarisEntityInterface {
     }
 
     @Override
-    public <T> T mirror() {
+    public <T> T createCopy() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 

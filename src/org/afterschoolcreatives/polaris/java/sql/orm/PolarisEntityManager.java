@@ -25,41 +25,10 @@
  */
 package org.afterschoolcreatives.polaris.java.sql.orm;
 
-import java.sql.SQLException;
-import org.afterschoolcreatives.polaris.java.sql.ConnectionFactory;
-import org.afterschoolcreatives.polaris.java.sql.orm.annotations.Column;
-import org.afterschoolcreatives.polaris.java.sql.orm.annotations.FetchOnly;
-import org.afterschoolcreatives.polaris.java.sql.orm.annotations.Nullable;
-import org.afterschoolcreatives.polaris.java.sql.orm.annotations.PrimaryKey;
-import org.afterschoolcreatives.polaris.java.sql.orm.annotations.Table;
-import org.afterschoolcreatives.polaris.java.sql.orm.annotations.Limit;
-import org.afterschoolcreatives.polaris.java.sql.orm.annotations.Unsigned;
-
 /**
  *
  * @author Jhon Melvin
  */
-@Table("student")
-public class Sample extends PolarisEntity {
-
-    @Column("name")
-    @PrimaryKey
-    @FetchOnly
-    @Unsigned
-    @Nullable(Nullable.Mode.NULL_IS_BLANK)
-    @Limit(length = 150, apprehension = Limit.Apprehension.CHOP)
-    public String studentName;
-
-    public static void main(String[] args) {
-
-        Sample sample = new Sample();
-        try {
-
-            sample.insert(null);
-            sample.update(null);
-        } catch (SQLException ex) {
-
-//            Logger.getLogger(Sample.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
+public class PolarisEntityManager {
+    
 }

@@ -25,16 +25,26 @@
  */
 package org.afterschoolcreatives.polaris.java.sql.orm;
 
+import java.lang.reflect.Field;
+import java.util.List;
+import org.afterschoolcreatives.polaris.java.reflection.PolarisAnnotatedClass;
+import org.afterschoolcreatives.polaris.java.sql.orm.annotations.Limit;
+import org.afterschoolcreatives.polaris.java.sql.orm.annotations.Nullable;
+
 /**
  *
  * @author Jhon Melvin
  */
 public class PolarisEntityInformation {
 
+    private PolarisAnnotatedClass annotatedStructure;
     private String entityName;
+    private List<EntityField> entityFields;
 
     public PolarisEntityInformation() {
+        this.annotatedStructure = null;
         this.entityName = null;
+        this.entityFields = null;
     }
 
     public String getEntityName() {
@@ -43,6 +53,112 @@ public class PolarisEntityInformation {
 
     public void setEntityName(String entityName) {
         this.entityName = entityName;
+    }
+
+    public PolarisAnnotatedClass getAnnotatedStructure() {
+        return annotatedStructure;
+    }
+
+    public void setAnnotatedStructure(PolarisAnnotatedClass annotatedStructure) {
+        this.annotatedStructure = annotatedStructure;
+    }
+
+    public List<EntityField> getEntityFields() {
+        return entityFields;
+    }
+
+    public void setEntityFields(List<EntityField> entityFields) {
+        this.entityFields = entityFields;
+    }
+
+    /**
+     * Polaris Representation of the Field Data.
+     */
+    public static class EntityField {
+
+        public EntityField() {
+            //
+        }
+
+        private Field field;
+        private String columnName;
+        private boolean primaryKey;
+        private boolean fetchOnly;
+        private long length;
+        private Limit.Apprehension limitApprehensionMode;
+        private Nullable.Mode nullMode;
+        private boolean unsigned;
+
+        //----------------------------------------------------------------------
+        // Entity Field Setters.
+        //----------------------------------------------------------------------
+        public void setField(Field field) {
+            this.field = field;
+        }
+
+        public void setColumnName(String columnName) {
+            this.columnName = columnName;
+        }
+
+        public void setPrimaryKey(boolean primaryKey) {
+            this.primaryKey = primaryKey;
+        }
+
+        public void setFetchOnly(boolean fetchOnly) {
+            this.fetchOnly = fetchOnly;
+        }
+
+        public void setLength(long length) {
+            this.length = length;
+        }
+
+        public void setLimitApprehensionMode(Limit.Apprehension apprehensionMode) {
+            this.limitApprehensionMode = apprehensionMode;
+        }
+
+        public void setNullMode(Nullable.Mode nullMode) {
+            this.nullMode = nullMode;
+        }
+
+        public void setUnsigned(boolean unsigned) {
+            this.unsigned = unsigned;
+        }
+
+        //----------------------------------------------------------------------
+        // Entity Field Getters.
+        //----------------------------------------------------------------------
+        public Field getField() {
+            return field;
+        }
+
+        public String getColumnName() {
+            return columnName;
+        }
+
+        public boolean isPrimaryKey() {
+            return primaryKey;
+        }
+
+        public boolean isFetchOnly() {
+            return fetchOnly;
+        }
+
+        public long getLength() {
+            return length;
+        }
+
+        public Limit.Apprehension getApprehensionMode() {
+            return limitApprehensionMode;
+        }
+
+        public Nullable.Mode getNullMode() {
+            return nullMode;
+        }
+
+        public boolean isUnsigned() {
+            return unsigned;
+        }
+
     }
 
 }
