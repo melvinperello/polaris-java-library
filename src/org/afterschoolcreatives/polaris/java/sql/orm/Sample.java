@@ -25,7 +25,6 @@
  */
 package org.afterschoolcreatives.polaris.java.sql.orm;
 
-import java.sql.Connection;
 import java.sql.SQLException;
 import org.afterschoolcreatives.polaris.java.sql.ConnectionFactory;
 import org.afterschoolcreatives.polaris.java.sql.ConnectionManager;

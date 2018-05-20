@@ -90,7 +90,7 @@ public class ScholarInformationModel extends PolarisEntity {
     @PrimaryKey
     @FetchOnly
     @Column(SCHOLAR_ID)
-    private String scholarId;
+    private int scholarId;
 
     @Column(STUDENT_NUMBER)
     private String studentNumber;
@@ -168,7 +168,7 @@ public class ScholarInformationModel extends PolarisEntity {
         this.studentProvince = "";
     }
 
-    public String getScholarId() {
+    public int getScholarId() {
         return scholarId;
     }
 
@@ -244,7 +244,7 @@ public class ScholarInformationModel extends PolarisEntity {
         return studentProvince;
     }
 
-    public void setScholarId(String scholarId) {
+    public void setScholarId(int scholarId) {
         this.scholarId = scholarId;
     }
 

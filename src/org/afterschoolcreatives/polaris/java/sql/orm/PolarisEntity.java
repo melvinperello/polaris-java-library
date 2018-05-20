@@ -25,6 +25,7 @@
  */
 package org.afterschoolcreatives.polaris.java.sql.orm;
 
+import org.ac.osql.util.ClassCaster;
 import java.beans.IntrospectionException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
@@ -184,7 +185,11 @@ public class PolarisEntity extends PolarisRecord {
             List<PolarisEntityInformation.EntityField> fieldList = new ArrayList<>();
             for (Field annotatedField : this.entityInformation.getAnnotatedStructure().getAnnotatedFields()) {
                 PolarisEntityInformation.EntityField entityField = new PolarisEntityInformation.EntityField();
+                //--------------------------------------------------------------
                 entityField.setFieldName(annotatedField.getName());
+                entityField.setFieldType(annotatedField.getType());
+                //--------------------------------------------------------------
+
                 LOG.trace("Field found: {}", annotatedField.getName());
                 LOG.trace("\tType: {}", annotatedField.getType());
                 for (Annotation annotation : annotatedField.getAnnotations()) {
@@ -210,6 +215,14 @@ public class PolarisEntity extends PolarisRecord {
                     }
                 } // end annotation loop
                 fieldList.add(entityField);
+                //--------------------------------------------------------------
+                if (entityField.isPrimaryKey()) {
+                    // set this as primary field.
+                    // throw error here if set more than once
+                    // means there are 2 annotations of PK
+                    this.entityInformation.setPrimaryField(entityField);
+                }
+                //--------------------------------------------------------------
             } // end field loop
             this.entityInformation.setEntityFields(fieldList);
         } else {
@@ -266,38 +279,8 @@ public class PolarisEntity extends PolarisRecord {
                 LOG.trace("\t\t{} ->  {}", fieldName, String.valueOf(value));
                 constructFields.add(entityField.getColumnName());
                 insertParameters.add(value);
-            } catch (IntrospectionException ex) {
-                /**
-                 * if an exception occurs during introspection
-                 */
-//                LOG.error("IntrospectionException", ex);
-                throw new PolarisRuntimeException("An exception has occured while inspecting the field", ex);
-            } catch (IllegalAccessException ex) {
-                /**
-                 * if this Method object is enforcing Java language access
-                 * control and the underlying method is inaccessible.
-                 */
-//                LOG.error("IllegalAccessException", ex);
-                throw new PolarisRuntimeException("The method is not accessible, make it public maybe ?", ex);
-            } catch (IllegalArgumentException ex) {
-                /**
-                 * if the method is an instance method and the specified object
-                 * argument is not an instance of the class or interface
-                 * declaring the underlying method (or of a subclass or
-                 * implementor thereof); if the number of actual and formal
-                 * parameters differ; if an unwrapping conversion for primitive
-                 * arguments fails; or if, after possible unwrapping, a
-                 * parameter value cannot be converted to the corresponding
-                 * formal parameter type by a method invocation conversion.
-                 */
-//                LOG.error("IllegalArgumentException", ex);
-                throw new PolarisRuntimeException("Cannot invoke the method with incorrect arguments", ex);
-            } catch (InvocationTargetException ex) {
-                /**
-                 * If the method itself throws an exception.
-                 */
-//                LOG.error("InvocationTargetException", ex);
-                throw new PolarisRuntimeException("The method throws an exception.", ex);
+            } catch (IntrospectionException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+                this.throwCommonExceptions(e);
             }
         }
         final String insertConstructor = this.insertConstructor(constructFields.toArray(new String[constructFields.size()]));
@@ -315,7 +298,10 @@ public class PolarisEntity extends PolarisRecord {
         //----------------------------------------------------------------------
         String postgresReturn = "";
         if (con.getConnectionDriver().equals(ConnectionFactory.Driver.PostgreSQL)) {
-            postgresReturn = " RETURNING " + sqlReserveEscape + "scholar_id" + sqlReserveEscape;
+            postgresReturn = " RETURNING "
+                    + sqlReserveEscape
+                    + this.entityInformation.getPrimaryField().getColumnName()
+                    + sqlReserveEscape;
         }
         //----------------------------------------------------------------------
 
@@ -328,8 +314,64 @@ public class PolarisEntity extends PolarisRecord {
          * generated.
          */
         Object generatedKey = con.insert(executeQuery, insertParameters.toArray());
-        LOG.trace("Generated Key: {} -> {}", generatedKey, generatedKey.getClass());
+        //----------------------------------------------------------------------
+        LOG.trace("\t[R] Insert -> Successfully Executed ^^v");
+        if (this.entityInformation.isContainingPrimaryField() && generatedKey != null) {
+            try {
+                LOG.trace("\t  [Writing PK] -> [Value: ({}) Type: ({}) Required: ({})]", generatedKey, generatedKey.getClass().toString(), this.entityInformation.getPrimaryField().getFieldType().toString());
+                if (!generatedKey.getClass().equals(this.entityInformation.getPrimaryField().getFieldType())) {
+                    generatedKey = ClassCaster.dataCast(generatedKey, this.entityInformation.getPrimaryField().getFieldType());
+                    LOG.warn("\t  [Resolve PK] -> Generated key was converted to [{}]", this.entityInformation.getPrimaryField().getFieldType());
+                }
+                PolarisReflection.invokePropertyWriteMethod(this, this.entityInformation.getPrimaryField().getFieldName(), generatedKey);
+            } catch (IntrospectionException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
+                this.throwCommonExceptions(ex);
+            }
+        }
         return true;
+    }
+
+    public void throwCommonExceptions(Exception reflectionException) {
+        try {
+            throw reflectionException;
+        } catch (IntrospectionException ex) {
+            /**
+             * if an exception occurs during introspection
+             */
+//                LOG.error("IntrospectionException", ex);
+            throw new PolarisRuntimeException("An exception has occured while inspecting the field", ex);
+        } catch (IllegalAccessException ex) {
+            /**
+             * if this Method object is enforcing Java language access control
+             * and the underlying method is inaccessible.
+             */
+//                LOG.error("IllegalAccessException", ex);
+            throw new PolarisRuntimeException("The method is not accessible, make it public maybe ?", ex);
+        } catch (IllegalArgumentException ex) {
+            /**
+             * if the method is an instance method and the specified object
+             * argument is not an instance of the class or interface declaring
+             * the underlying method (or of a subclass or implementor thereof);
+             * if the number of actual and formal parameters differ; if an
+             * unwrapping conversion for primitive arguments fails; or if, after
+             * possible unwrapping, a parameter value cannot be converted to the
+             * corresponding formal parameter type by a method invocation
+             * conversion.
+             */
+//                LOG.error("IllegalArgumentException", ex);
+            throw new PolarisRuntimeException("Cannot invoke the method with incorrect arguments", ex);
+        } catch (InvocationTargetException ex) {
+            /**
+             * If the method itself throws an exception.
+             */
+//                LOG.error("InvocationTargetException", ex);
+            throw new PolarisRuntimeException("The method throws an exception.", ex);
+        } catch (Exception e) {
+            /**
+             * Unknown exception.
+             */
+            throw new PolarisRuntimeException("An [Unknown Exception] was caught in common exception catcher.", e);
+        }
     }
 
     public String insertQueryPreamble(String tableName) {
@@ -352,6 +394,12 @@ public class PolarisEntity extends PolarisRecord {
         return constructorBuilder.toString();
     }
 
+    /**
+     * Creates the parameter block of string.
+     *
+     * @param parameterCount
+     * @return Ex. "(?,?,?,?)"
+     */
     public String insertParameters(int parameterCount) {
         final StringBuilder paramBuilder = new StringBuilder("(");
         for (int ctr = 0; ctr < parameterCount; ctr++) {

@@ -39,12 +39,16 @@ public class PolarisEntityInformation {
 
     private PolarisAnnotatedClass annotatedStructure;
     private String entityName;
+    private EntityField primaryField;
     private List<EntityField> entityFields;
+    private boolean containingPrimaryField;
 
     public PolarisEntityInformation() {
         this.annotatedStructure = null;
         this.entityName = null;
+        this.primaryField = null;
         this.entityFields = null;
+        containingPrimaryField = false;
     }
 
     public String getEntityName() {
@@ -63,6 +67,24 @@ public class PolarisEntityInformation {
         this.annotatedStructure = annotatedStructure;
     }
 
+    public EntityField getPrimaryField() {
+        return primaryField;
+    }
+
+    public void setPrimaryField(EntityField primaryField) {
+        this.primaryField = primaryField;
+        this.containingPrimaryField = true;
+    }
+
+    /**
+     * Read only outside this class.
+     *
+     * @return
+     */
+    public boolean isContainingPrimaryField() {
+        return containingPrimaryField;
+    }
+
     public List<EntityField> getEntityFields() {
         return entityFields;
     }
@@ -79,6 +101,7 @@ public class PolarisEntityInformation {
         public EntityField() {
             //
             this.fieldName = null;
+            this.fieldType = null;
             this.columnName = null;
             this.primaryKey = false;
             this.fetchOnly = false;
@@ -89,6 +112,7 @@ public class PolarisEntityInformation {
         }
 
         private String fieldName;
+        private Class fieldType;
         private String columnName;
         private boolean primaryKey;
         private boolean fetchOnly;
@@ -102,6 +126,10 @@ public class PolarisEntityInformation {
         //----------------------------------------------------------------------
         public void setFieldName(String fieldName) {
             this.fieldName = fieldName;
+        }
+
+        public void setFieldType(Class fieldType) {
+            this.fieldType = fieldType;
         }
 
         public void setColumnName(String columnName) {
@@ -137,6 +165,10 @@ public class PolarisEntityInformation {
         //----------------------------------------------------------------------
         public String getFieldName() {
             return fieldName;
+        }
+
+        public Class getFieldType() {
+            return fieldType;
         }
 
         public String getColumnName() {
