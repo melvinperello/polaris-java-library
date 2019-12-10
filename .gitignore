@@ -2,3 +2,7 @@
 /build/
 /dist/
 /out/
+/target/
+.classpath
+.project
+/.settings/

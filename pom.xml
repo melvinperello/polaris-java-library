@@ -1,0 +1,139 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 
+	http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<!-- The Basics -->
+	<groupId>com.melvinperello</groupId>
+	<artifactId>polaris-java-library</artifactId>
+	<version>1.0.0-SNAPSHOT</version>
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
+	<packaging>jar</packaging>
+	
+	<repositories>
+		<repository>
+			<id>local</id>
+			<url>file://${basedir}/local-repo</url>
+		</repository>
+	</repositories>
+	
+	
+	
+	<dependencies>
+	
+		<dependency>
+		    <groupId>commons-net</groupId>
+		    <artifactId>commons-net</artifactId>
+		    <version>3.6</version>
+		</dependency>
+		
+		<dependency>
+		    <groupId>org.slf4j</groupId>
+		    <artifactId>slf4j-api</artifactId>
+		    <version>1.7.25</version>
+		</dependency>
+
+		<dependency>
+		    <groupId>org.slf4j</groupId>
+		    <artifactId>slf4j-simple</artifactId>
+		    <version>1.7.25</version>
+		</dependency>
+
+		<dependency>
+		    <groupId>org.tukaani</groupId>
+		    <artifactId>xz</artifactId>
+		    <version>1.8</version>
+		</dependency>
+		
+	</dependencies>
+	
+
+
+	<build>
+	
+		<resources>
+			<resource>
+				<directory>src</directory>
+				<includes>
+					<include>**/*.properties</include>
+				</includes>
+			</resource>
+		</resources>
+		
+		<sourceDirectory>src</sourceDirectory>
+		<testSourceDirectory>test</testSourceDirectory>
+		<plugins>
+
+			<!-- download source code in Eclipse, best practice -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-eclipse-plugin</artifactId>
+				<version>2.10</version>
+				<configuration>
+					<downloadSources>true</downloadSources>
+					<downloadJavadocs>false</downloadJavadocs>
+				</configuration>
+			</plugin>
+
+			<!-- Set a JDK compiler level -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.8.1</version>
+				<configuration>
+					<source>1.8</source>
+					<target>1.8</target>
+				</configuration>
+			</plugin>
+
+			<!-- Make this jar executable -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>3.2.0</version>
+				<configuration>
+				  <!-- DO NOT include log4j.properties file in your Jar -->
+				  <excludes>
+					<exclude>**/log4j.properties</exclude>
+				  </excludes>
+				</configuration>
+			</plugin>
+
+		</plugins>
+	</build>
+
+
+
+	<!-- More Project Information -->
+	<name>Polaris Java Library</name>
+	<description>Polaris Java Library</description>
+	<inceptionYear>2018</inceptionYear>
+	<licenses>
+		<license>
+			<name>MIT License</name>
+			<url>https://opensource.org/licenses/MIT</url>
+			<distribution>manual</distribution>
+			<comments>MIT License</comments>
+		</license>
+	</licenses>
+	<organization>
+		<name>Afterschool Creatives</name>
+		<url>https://www.facebook.com/afterschoolcreatives</url>
+	</organization>
+	<developers>
+		<developer>
+			<id>melvinperello</id>
+			<name>Melvin Perello</name>
+			<email>melvinperello@gmail.com</email>
+			<organization>Afterschool Creatives</organization>
+			<organizationUrl>https://www.facebook.com/monosyncstudioph</organizationUrl>
+			<roles>
+				<role>developer</role>
+			</roles>
+			<timezone>Asia/Singapore</timezone>
+		</developer>
+	</developers>
+</project>
